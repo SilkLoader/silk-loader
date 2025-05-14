@@ -1,10 +1,11 @@
 rootProject.name = "silk-loader"
 
 val isJitpackBuild = System.getenv("JITPACK") == "true"
+val isCIBuild = System.getenv("CI") == "true"
 
 include(":loader")
 
-if (!isJitpackBuild) {
+if (!isJitpackBuild && !isCIBuild) {
     pluginManagement {
         resolutionStrategy {
             eachPlugin {
