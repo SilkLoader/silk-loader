@@ -1,9 +1,9 @@
 plugins {
-    id("de.rhm176.silk")
+    id("de.rhm176.silk") version "v1.0.3"
 }
 
 dependencies {
-    equilinox(files("C:\\Users\\RHM\\scoop\\apps\\steam\\current\\steamapps\\common\\Equilinox\\EquilinoxWindows.jar"))
+    equilinox(files(silk.findEquilinoxGameJar()))
 
     implementation(project(":loader"))
 }

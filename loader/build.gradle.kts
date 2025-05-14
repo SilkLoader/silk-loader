@@ -3,7 +3,7 @@ plugins {
     id("java-library")
 }
 
-version = "1.0.0"
+version = findProperty("version")!!
 group = "de.rhm176.silk"
 
 repositories {
