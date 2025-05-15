@@ -1,5 +1,25 @@
+/*
+ * Copyright 2025 Silk Loader
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.rhm176.loader;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.List;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
@@ -9,12 +29,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
-
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Utility class to look up the version information of the Equilinox game.
@@ -29,8 +43,7 @@ public final class EquilinoxVersionLookup {
     /**
      * Private constructor to prevent instantiation of this utility class.
      */
-    private EquilinoxVersionLookup() {
-    }
+    private EquilinoxVersionLookup() {}
 
     /**
      * Retrieves the version information from the specified Equilinox game JAR.
@@ -63,24 +76,29 @@ public final class EquilinoxVersionLookup {
 
             try (InputStream is = cp.getInputStream(LoaderUtil.getClassFileName(entrypointClass))) {
                 ClassReader classReader = new ClassReader(is);
-                classReader.accept(new ClassVisitor(FabricLoaderImpl.ASM_VERSION) {
-                    @Override
-                    public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-                        boolean isPublic = (access & Opcodes.ACC_PUBLIC) != 0;
-                        boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
-                        boolean isFinal = (access & Opcodes.ACC_FINAL) != 0;
+                classReader.accept(
+                        new ClassVisitor(FabricLoaderImpl.ASM_VERSION) {
+                            @Override
+                            public FieldVisitor visitField(
+                                    int access, String name, String descriptor, String signature, Object value) {
+                                boolean isPublic = (access & Opcodes.ACC_PUBLIC) != 0;
+                                boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+                                boolean isFinal = (access & Opcodes.ACC_FINAL) != 0;
 
-                        if (isPublic && isStatic && isFinal &&
-                                "VERSION_STRING".equals(name) &&
-                                "Ljava/lang/String;".equals(descriptor)) {
+                                if (isPublic
+                                        && isStatic
+                                        && isFinal
+                                        && "VERSION_STRING".equals(name)
+                                        && "Ljava/lang/String;".equals(descriptor)) {
 
-                            if (value instanceof String) {
-                                version[0] = ((String) value).replaceFirst("Version ", "");
+                                    if (value instanceof String) {
+                                        version[0] = ((String) value).replaceFirst("Version ", "");
+                                    }
+                                }
+                                return super.visitField(access, name, descriptor, signature, value);
                             }
-                        }
-                        return super.visitField(access, name, descriptor, signature, value);
-                    }
-                }, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+                        },
+                        ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
             }
         } catch (IOException e) {
             throw ExceptionUtil.wrap(e);

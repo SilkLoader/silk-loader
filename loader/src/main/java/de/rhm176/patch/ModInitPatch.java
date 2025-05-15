@@ -1,5 +1,22 @@
+/*
+ * Copyright 2025 Silk Loader
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.rhm176.patch;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
@@ -10,9 +27,6 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * A {@link GamePatch} responsible for injecting Fabric Loader mod initialization code
@@ -28,7 +42,8 @@ public class ModInitPatch extends GamePatch {
     private static final String TARGET_METHOD_NAME = "main";
     private static final String TARGET_METHOD_DESCRIPTOR = "([Ljava/lang/String;)V";
 
-    private static final String PATCH_CLASS_INTERNAL_NAME = ModInitPatch.class.getName().replace('.', '/');
+    private static final String PATCH_CLASS_INTERNAL_NAME =
+            ModInitPatch.class.getName().replace('.', '/');
     private static final String INIT_METHOD_NAME = "init";
     private static final String INIT_METHOD_DESCRIPTOR = "(Ljava/lang/Object;)V";
 
@@ -44,7 +59,8 @@ public class ModInitPatch extends GamePatch {
      * @param classEmitter A consumer to accept the modified {@link ClassNode}.
      */
     @Override
-    public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
+    public void process(
+            FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
         ClassNode mainAppClass = classSource.apply(TARGET_CLASS_INTERNAL_NAME.replace('/', '.'));
         if (mainAppClass == null) {
             Log.error(LogCategory.GAME_PATCH, "Could not find main class for mod init hook.");
@@ -53,8 +69,8 @@ public class ModInitPatch extends GamePatch {
 
         for (MethodNode methodNode : mainAppClass.methods) {
             if (TARGET_METHOD_NAME.equals(methodNode.name) && TARGET_METHOD_DESCRIPTOR.equals(methodNode.desc)) {
-                Log.debug(LogCategory.GAME_PATCH, "Applying mod init hook to %s::%s",
-                        mainAppClass.name, methodNode.name);
+                Log.debug(
+                        LogCategory.GAME_PATCH, "Applying mod init hook to %s::%s", mainAppClass.name, methodNode.name);
                 if (injectModInitCall(mainAppClass, methodNode)) {
                     classEmitter.accept(mainAppClass);
                 }
@@ -80,17 +96,10 @@ public class ModInitPatch extends GamePatch {
 
         newInstructions.add(new TypeInsnNode(Opcodes.NEW, classNode.name));
         newInstructions.add(new InsnNode(Opcodes.DUP));
-        newInstructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL,
-                classNode.name,
-                "<init>",
-                "()V",
-                false));
+        newInstructions.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, classNode.name, "<init>", "()V", false));
 
-        newInstructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC,
-                PATCH_CLASS_INTERNAL_NAME,
-                INIT_METHOD_NAME,
-                INIT_METHOD_DESCRIPTOR,
-                false));
+        newInstructions.add(new MethodInsnNode(
+                Opcodes.INVOKESTATIC, PATCH_CLASS_INTERNAL_NAME, INIT_METHOD_NAME, INIT_METHOD_DESCRIPTOR, false));
 
         methodNode.instructions.insert(newInstructions);
 

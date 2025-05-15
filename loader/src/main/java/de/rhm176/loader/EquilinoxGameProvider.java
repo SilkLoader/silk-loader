@@ -1,13 +1,22 @@
+/*
+ * Copyright 2025 Silk Loader
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.rhm176.loader;
 
 import de.rhm176.patch.ModInitPatch;
 import de.rhm176.patch.WindowTitlePatch;
-import net.fabricmc.loader.impl.game.GameProvider;
-import net.fabricmc.loader.impl.game.patch.GameTransformer;
-import net.fabricmc.loader.impl.launch.FabricLauncher;
-import net.fabricmc.loader.impl.util.Arguments;
-import net.fabricmc.loader.impl.util.ExceptionUtil;
-import net.fabricmc.loader.impl.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
@@ -19,12 +28,15 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
+import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.game.patch.GameTransformer;
+import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.util.Arguments;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
 public class EquilinoxGameProvider implements GameProvider {
-    private final GameTransformer transformer = new GameTransformer(
-            new WindowTitlePatch(this),
-            new ModInitPatch()
-    );
+    private final GameTransformer transformer = new GameTransformer(new WindowTitlePatch(this), new ModInitPatch());
 
     private List<Path> classPath;
 
@@ -67,7 +79,7 @@ public class EquilinoxGameProvider implements GameProvider {
     public Path getLaunchDirectory() {
         try {
             return Paths.get(".").toRealPath();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw ExceptionUtil.wrap(new RuntimeException("Failed to resolve launch dir", e));
         }
     }
@@ -96,16 +108,16 @@ public class EquilinoxGameProvider implements GameProvider {
         Path codePath;
         try {
             codePath = Paths.get(codeSource.getLocation().toURI());
-        } catch(URISyntaxException e) {
+        } catch (URISyntaxException e) {
             throw ExceptionUtil.wrap(
-                    new RuntimeException("Failed to find source of " + EquilinoxGameProvider.class.getName() + "?", e)
-            );
+                    new RuntimeException("Failed to find source of " + EquilinoxGameProvider.class.getName() + "?", e));
         }
 
         Path basePath;
         try {
-            basePath = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH)).toRealPath();
-        } catch(IOException e) {
+            basePath = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH))
+                    .toRealPath();
+        } catch (IOException e) {
             throw ExceptionUtil.wrap(new RuntimeException("Failed to find base", e));
         }
 
@@ -123,7 +135,7 @@ public class EquilinoxGameProvider implements GameProvider {
                 .map((path) -> {
                     try {
                         return path.toRealPath();
-                    } catch(IOException e) {
+                    } catch (IOException e) {
                         throw ExceptionUtil.wrap(new RuntimeException("Failed to get real path of " + path, e));
                     }
                 })
@@ -133,7 +145,6 @@ public class EquilinoxGameProvider implements GameProvider {
         fabricLauncher.setValidParentClassPath(parentClassPath);
 
         transformer.locateEntrypoints(fabricLauncher, classPath);
-
     }
 
     @Override
@@ -150,20 +161,19 @@ public class EquilinoxGameProvider implements GameProvider {
     public void launch(ClassLoader classLoader) {
         var targetName = getEntrypoint();
 
-
         MethodHandle invoker;
         try {
             Class<?> target = classLoader.loadClass(targetName);
-            invoker = MethodHandles.lookup().findStatic(target, "main",
-                    MethodType.methodType(void.class, String[].class));
-        } catch(ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
+            invoker = MethodHandles.lookup()
+                    .findStatic(target, "main", MethodType.methodType(void.class, String[].class));
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
             throw ExceptionUtil.wrap(new RuntimeException("Failed to find entry point", e));
         }
 
         try {
             //noinspection ConfusingArgumentToVarargsMethod
             invoker.invokeExact(arguments.toArray());
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             throw ExceptionUtil.wrap(new RuntimeException("Failed to launch", e));
         }
     }
@@ -175,7 +185,7 @@ public class EquilinoxGameProvider implements GameProvider {
 
     @Override
     public String[] getLaunchArguments(boolean sanitize) {
-        //There are no sensitive arguments, so I can just pass it as an array without removing any.
+        // There are no sensitive arguments, so I can just pass it as an array without removing any.
         return arguments.toArray();
     }
 }

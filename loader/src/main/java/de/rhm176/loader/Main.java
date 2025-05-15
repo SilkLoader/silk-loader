@@ -1,8 +1,19 @@
+/*
+ * Copyright 2025 Silk Loader
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.rhm176.loader;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.impl.launch.knot.Knot;
-import net.fabricmc.loader.impl.util.SystemProperties;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -14,6 +25,9 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.launch.knot.Knot;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
 // my god, I hate this
 public final class Main {
@@ -22,7 +36,11 @@ public final class Main {
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
             String currentJarName = null;
             try {
-                Path runningJarPath = Paths.get(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+                Path runningJarPath = Paths.get(Main.class
+                        .getProtectionDomain()
+                        .getCodeSource()
+                        .getLocation()
+                        .toURI());
                 if (runningJarPath.getFileName().toString().toLowerCase().endsWith(".jar")) {
                     currentJarName = runningJarPath.getFileName().toString();
                 }
@@ -34,14 +52,16 @@ public final class Main {
             if (currentJarName != null) {
                 final String finalCurrentJarName = currentJarName;
                 try (Stream<Path> stream = Files.list(cwd)) {
-                    stream.filter(p -> Files.isRegularFile(p) &&
-                                    p.getFileName().toString().startsWith("Equilinox") &&
-                                    p.getFileName().toString().toLowerCase().endsWith(".jar") &&
-                                    !p.getFileName().toString().equals(finalCurrentJarName))
+                    stream.filter(p -> Files.isRegularFile(p)
+                                    && p.getFileName().toString().startsWith("Equilinox")
+                                    && p.getFileName().toString().toLowerCase().endsWith(".jar")
+                                    && !p.getFileName().toString().equals(finalCurrentJarName))
                             .findFirst()
                             .ifPresent(foundJar -> {
                                 try {
-                                    System.setProperty(SystemProperties.GAME_JAR_PATH, foundJar.toRealPath().toString());
+                                    System.setProperty(
+                                            SystemProperties.GAME_JAR_PATH,
+                                            foundJar.toRealPath().toString());
                                 } catch (Exception ignored) {
 
                                 }
@@ -53,17 +73,21 @@ public final class Main {
         }
 
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
-            throw new IllegalStateException("Could not find the Equilinox jar. Please set one manually using" +
-                    " the `-D" + SystemProperties.GAME_JAR_PATH + "=<...>` jvm arg.");
+            throw new IllegalStateException("Could not find the Equilinox jar. Please set one manually using"
+                    + " the `-D" + SystemProperties.GAME_JAR_PATH + "=<...>` jvm arg.");
         }
 
         if (System.getProperty("eqmodloader.loadedNatives") == null) {
             RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-            File file = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH)).toRealPath().toFile();
+            File file = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH))
+                    .toRealPath()
+                    .toFile();
             Path nativesDirectory = extractNatives(file);
 
             List<String> command = new ArrayList<>();
-            command.add(Paths.get(bean.getSystemProperties().get("java.home"), "bin", "java").toAbsolutePath().toString());
+            command.add(Paths.get(bean.getSystemProperties().get("java.home"), "bin", "java")
+                    .toAbsolutePath()
+                    .toString());
 
             final List<String> blackListedArgs = List.of(
                     "-Djava.library.path=",
@@ -71,11 +95,8 @@ public final class Main {
                     "-Xbootclasspath",
                     "-javaagent",
                     "-cp",
-                    "-classpath"
-            );
-            command.addAll(bean
-                    .getInputArguments()
-                    .stream()
+                    "-classpath");
+            command.addAll(bean.getInputArguments().stream()
                     .filter(i -> blackListedArgs.stream().noneMatch(i::startsWith))
                     .toList());
 
@@ -105,7 +126,6 @@ public final class Main {
         Knot.launch(args, EnvType.CLIENT);
     }
 
-
     public static Path extractNatives(File file) throws Exception {
         File tempDir = Files.createTempDirectory("natives").toFile();
         tempDir.deleteOnExit();
@@ -115,10 +135,13 @@ public final class Main {
 
             while (entities.hasMoreElements()) {
                 JarEntry entry = entities.nextElement();
-                if (!entry.isDirectory() && !entry.getName().contains("/") && !entry.getName().contains("\\") && isNativeFile(entry.getName())) {
+                if (!entry.isDirectory()
+                        && !entry.getName().contains("/")
+                        && !entry.getName().contains("\\")
+                        && isNativeFile(entry.getName())) {
                     File outputFile = new File(tempDir, entry.getName());
                     try (InputStream in = jarFile.getInputStream(entry);
-                        OutputStream out = new FileOutputStream(outputFile)) {
+                            OutputStream out = new FileOutputStream(outputFile)) {
                         byte[] buffer = new byte[8192];
                         int bytesRead;
                         while ((bytesRead = in.read(buffer)) != -1) {
@@ -141,6 +164,6 @@ public final class Main {
             return name.endsWith(".so");
         } else
             return (osName.startsWith("Mac") || osName.startsWith("Darwin"))
-                    && (name.endsWith(".jnilib")|| name.endsWith(".dylib"));
+                    && (name.endsWith(".jnilib") || name.endsWith(".dylib"));
     }
 }

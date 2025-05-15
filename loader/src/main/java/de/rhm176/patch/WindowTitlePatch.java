@@ -1,21 +1,31 @@
+/*
+ * Copyright 2025 Silk Loader
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.rhm176.patch;
 
 import de.rhm176.loader.EquilinoxGameProvider;
-import net.fabricmc.loader.api.FabricLoader;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import org.jetbrains.annotations.ApiStatus;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * A {@link GamePatch} that modifies the game's window title to include
@@ -61,7 +71,8 @@ public class WindowTitlePatch extends GamePatch {
      * @param classEmitter A consumer to accept the modified {@link ClassNode}.
      */
     @Override
-    public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
+    public void process(
+            FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
         ClassNode displayManagerClass = classSource.apply(TARGET_CLASS_INTERNAL_NAME.replace('/', '.'));
         if (displayManagerClass == null) {
             return;
@@ -69,8 +80,11 @@ public class WindowTitlePatch extends GamePatch {
 
         for (MethodNode methodNode : displayManagerClass.methods) {
             if (TARGET_METHOD_NAME.equals(methodNode.name)) {
-                Log.debug(LogCategory.GAME_PATCH, "Applying window title hook to %s::%s",
-                        displayManagerClass.name, methodNode.name);
+                Log.debug(
+                        LogCategory.GAME_PATCH,
+                        "Applying window title hook to %s::%s",
+                        displayManagerClass.name,
+                        methodNode.name);
                 if (transformCreateDisplayMethod(methodNode)) {
                     classEmitter.accept(displayManagerClass);
                     break;
@@ -99,22 +113,24 @@ public class WindowTitlePatch extends GamePatch {
 
         for (AbstractInsnNode currentInsn : methodNode.instructions) {
             if (currentInsn.getOpcode() == Opcodes.INVOKESTATIC && currentInsn instanceof MethodInsnNode setTitleCall) {
-                if (DISPLAY_CLASS_INTERNAL_NAME.equals(setTitleCall.owner) &&
-                        SET_TITLE_METHOD_NAME.equals(setTitleCall.name) &&
-                        SET_TITLE_METHOD_DESCRIPTOR.equals(setTitleCall.desc)) {
+                if (DISPLAY_CLASS_INTERNAL_NAME.equals(setTitleCall.owner)
+                        && SET_TITLE_METHOD_NAME.equals(setTitleCall.name)
+                        && SET_TITLE_METHOD_DESCRIPTOR.equals(setTitleCall.desc)) {
                     AbstractInsnNode prevToSetTitle = setTitleCall.getPrevious();
-                    if (prevToSetTitle != null && prevToSetTitle.getOpcode() == Opcodes.INVOKESTATIC &&
-                            prevToSetTitle instanceof MethodInsnNode getTextCall) {
-                        if (GAME_TEXT_CLASS_INTERNAL_NAME.equals(getTextCall.owner) &&
-                                GET_TEXT_METHOD_NAME.equals(getTextCall.name) &&
-                                GET_TEXT_METHOD_DESCRIPTOR.equals(getTextCall.desc)) {
+                    if (prevToSetTitle != null
+                            && prevToSetTitle.getOpcode() == Opcodes.INVOKESTATIC
+                            && prevToSetTitle instanceof MethodInsnNode getTextCall) {
+                        if (GAME_TEXT_CLASS_INTERNAL_NAME.equals(getTextCall.owner)
+                                && GET_TEXT_METHOD_NAME.equals(getTextCall.name)
+                                && GET_TEXT_METHOD_DESCRIPTOR.equals(getTextCall.desc)) {
                             AbstractInsnNode argLoadInsn = getTextCall.getPrevious();
                             if (argLoadInsn != null && isArgOne(argLoadInsn)) {
                                 InsnList instructionsToInsert = new InsnList();
-                                instructionsToInsert.add(new LdcInsnNode(" " + gameProvider.getRawGameVersion() +
-                                        " - Fabric Loader " + FabricLoaderImpl.VERSION));
+                                instructionsToInsert.add(new LdcInsnNode(" " + gameProvider.getRawGameVersion()
+                                        + " - Fabric Loader " + FabricLoaderImpl.VERSION));
 
-                                instructionsToInsert.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL,
+                                instructionsToInsert.add(new MethodInsnNode(
+                                        Opcodes.INVOKEVIRTUAL,
                                         "java/lang/String",
                                         "concat",
                                         "(Ljava/lang/String;)Ljava/lang/String;",
