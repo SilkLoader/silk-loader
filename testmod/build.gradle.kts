@@ -1,5 +1,5 @@
 plugins {
-    id("de.rhm176.silk") version "v1.0.3"
+    id("de.rhm176.silk") version "v1.0.4"
 }
 
 dependencies {
