@@ -58,31 +58,35 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build plugin
-        id: build_plugin
+      - name: Build loader
+        id: build_loader
         run: ./gradlew :loader:jar --stacktrace --warning-mode fail
 
       - name: Generate Changelog
         id: generate_changelog
-        uses: mikepenz/release-changelog-builder-action@v4
+        uses: mikepenz/release-changelog-builder-action@v5
         with:
           configurationJson: |
             {
               "categories": [
                 {
-                  "title": "## ✨ Features",
+                  "title": "## 🚀 Features",
                   "labels": ["feature", "feat"]
                 },
                 {
-                  "title": "## 🐛 Bug Fixes",
+                  "title": "## 🐛 Fixes",
                   "labels": ["fix", "bugfix", "bug"]
+                },
+                {
+                  "title": "## 🧪 Tests",
+                  "labels": ["test"]
                 },
                 {
                   "title": "## 📝 Documentation",
                   "labels": ["docs", "documentation"]
                 },
                 {
-                  "title": "##  dependents Chore",
+                  "title": "## Chore",
                   "labels": ["chore"]
                 },
                 {
@@ -90,7 +94,7 @@ jobs:
                   "labels": []
                 }
               ],
-              "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
+               "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
               "empty_template": "No notable changes for this release."
             }
         env:
