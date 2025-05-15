@@ -25,15 +25,30 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.util.SystemProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // my god, I hate this
 public final class Main {
+    public static final Logger LOGGER = LoggerFactory.getLogger("Silk Loader");
+
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.SKIP_MC_PROVIDER, "true");
+
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+        if (Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"))) {
+            rootLogger.setLevel(Level.DEBUG);
+        }
+
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
+            LOGGER.info("{} not set. Attempting to automatically detect Equilinox game JAR.", SystemProperties.GAME_JAR_PATH);
             String currentJarName = null;
             try {
                 Path runningJarPath = Paths.get(Main.class
@@ -44,8 +59,8 @@ public final class Main {
                 if (runningJarPath.getFileName().toString().toLowerCase().endsWith(".jar")) {
                     currentJarName = runningJarPath.getFileName().toString();
                 }
-            } catch (Exception ignored) {
-
+            } catch (Exception e) {
+                LOGGER.warn("Could not determine current running JAR name.", e);
             }
 
             Path cwd = Paths.get(".");
@@ -62,19 +77,21 @@ public final class Main {
                                     System.setProperty(
                                             SystemProperties.GAME_JAR_PATH,
                                             foundJar.toRealPath().toString());
-                                } catch (Exception ignored) {
-
+                                    LOGGER.info("Found game at: {}", foundJar.toRealPath());
+                                } catch (Exception e) {
+                                    LOGGER.warn("Could not get real path for found JAR {} or set system property.", foundJar, e);
                                 }
                             });
-                } catch (Exception ignored) {
-
+                } catch (Exception e) {
+                    LOGGER.warn("Error occurred while searching for game JAR in CWD.", e);
                 }
             }
         }
 
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
-            throw new IllegalStateException("Could not find the Equilinox jar. Please set one manually using"
-                    + " the `-D" + SystemProperties.GAME_JAR_PATH + "=<...>` jvm arg.");
+            LOGGER.error("Could not find the Equilinox jar. Please set one manually using"
+                    + " the `-D" + SystemProperties.GAME_JAR_PATH + "=<...>` JVM Argument.");
+            System.exit(1);
         }
 
         if (System.getProperty("eqmodloader.loadedNatives") == null) {
@@ -123,6 +140,7 @@ public final class Main {
             }
         }
 
+        LOGGER.info("Proceeding to launch Knot client...");
         Knot.launch(args, EnvType.CLIENT);
     }
 

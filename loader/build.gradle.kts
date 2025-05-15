@@ -22,6 +22,7 @@ dependencies {
         exclude(group = "com.google.guava")
     }
     api("com.google.guava:guava:${findProperty("guavaVersion")}")
+    api("org.slf4j:slf4j-api:${findProperty("slf4jVersion")}")
 
     implementation("net.fabricmc:tiny-mappings-parser:${findProperty("tinyMappingsParserVersion")}")
 
@@ -36,6 +37,8 @@ dependencies {
     implementation("org.ow2.asm:asm-util:$asmVersion")
 
     compileOnly("org.jetbrains:annotations:${rootProject.findProperty("annotationsVersion")}")
+
+    implementation("ch.qos.logback:logback-classic:${findProperty("logbackVersion")}")
 }
 
 java {
