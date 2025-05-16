@@ -24,7 +24,6 @@ import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -36,7 +35,6 @@ import org.objectweb.asm.tree.*;
  * bytecode instructions to call the {@link #init(Object)} method of this patch,
  * which then triggers Fabric's mod loading and entrypoint invocation sequence.
  */
-@ApiStatus.Internal
 public class ModInitPatch extends GamePatch {
     private static final String TARGET_CLASS_INTERNAL_NAME = "main/MainApp";
     private static final String TARGET_METHOD_NAME = "main";

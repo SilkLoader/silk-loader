@@ -1,6 +1,7 @@
 plugins {
     id("maven-publish")
     id("java-library")
+    id("com.gradleup.shadow") version "9.0.0-beta13"
 }
 
 version = findProperty("version")!!
@@ -21,8 +22,8 @@ dependencies {
         exclude(group = "com.google.code.gson")
         exclude(group = "com.google.guava")
     }
-    api("com.google.guava:guava:${findProperty("guavaVersion")}")
-    api("org.slf4j:slf4j-api:${findProperty("slf4jVersion")}")
+
+    implementation("com.google.guava:guava:${findProperty("guavaVersion")}")
 
     implementation("net.fabricmc:tiny-mappings-parser:${findProperty("tinyMappingsParserVersion")}")
 
@@ -35,10 +36,6 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:$asmVersion")
     implementation("org.ow2.asm:asm-tree:$asmVersion")
     implementation("org.ow2.asm:asm-util:$asmVersion")
-
-    compileOnly("org.jetbrains:annotations:${rootProject.findProperty("annotationsVersion")}")
-
-    implementation("ch.qos.logback:logback-classic:${findProperty("logbackVersion")}")
 }
 
 java {
@@ -53,5 +50,27 @@ publishing {
 
             artifactId = "silk-loader"
         }
+
+        create<MavenPublication>("mavenShadow") {
+            from(components["shadow"])
+
+            artifactId = "silk-loader"
+        }
+    }
+}
+
+tasks.shadowJar {
+    archiveClassifier.set("fat")
+
+    mergeServiceFiles()
+
+    manifest {
+        attributes(mapOf(
+            "Main-Class" to "de.rhm176.loader.Main",
+        ))
+    }
+
+    dependencies {
+        exclude(dependency("net.fabricmc:fabric-loader:.*"))
     }
 }
