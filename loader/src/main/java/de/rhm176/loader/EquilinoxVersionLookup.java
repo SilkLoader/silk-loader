@@ -24,7 +24,6 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SimpleClassPath;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -60,7 +59,7 @@ public final class EquilinoxVersionLookup {
      * The version name might be an empty string if not found. The class version might be null if reading fails.
      * @throws ExceptionUtil.WrappedException if an {@link IOException} occurs while reading the JAR or class files.
      */
-    public static EquilinoxVersion getVersion(@NotNull Path equilinoxJar, @NotNull String entrypointClass) {
+    public static EquilinoxVersion getVersion(Path equilinoxJar, String entrypointClass) {
         Integer classPathVersion = null;
         final String[] version = {""};
 

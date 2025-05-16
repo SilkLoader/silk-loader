@@ -23,7 +23,6 @@ import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-import org.jetbrains.annotations.ApiStatus;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -35,7 +34,6 @@ import org.objectweb.asm.tree.*;
  * It intercepts the call to {@code Display.setTitle(String)} and appends additional version
  * information to the original title string.
  */
-@ApiStatus.Internal
 public class WindowTitlePatch extends GamePatch {
     private final EquilinoxGameProvider gameProvider;
 

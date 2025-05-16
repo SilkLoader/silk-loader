@@ -15,9 +15,6 @@
  */
 package de.rhm176.loader;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Represents the version information for Equilinox.
  * <p>
@@ -29,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * This can be null if the class version is not determined or not applicable.
  * Common values: 52 (Java 8).
  */
-public record EquilinoxVersion(@NotNull String name, @Nullable Integer classVersion) {
+public record EquilinoxVersion(String name, Integer classVersion) {
     /**
      * Canonical constructor for the EquilinoxVersion record.
      *
@@ -44,7 +41,6 @@ public record EquilinoxVersion(@NotNull String name, @Nullable Integer classVers
      * @return The non-null display name of the version.
      */
     @Override
-    @NotNull
     public String name() {
         return name;
     }
@@ -55,7 +51,6 @@ public record EquilinoxVersion(@NotNull String name, @Nullable Integer classVers
      * @return The class version as an {@link Integer}, or {@code null} if not determined or applicable.
      */
     @Override
-    @Nullable
     public Integer classVersion() {
         return classVersion;
     }
