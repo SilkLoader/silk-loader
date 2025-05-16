@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.util.SystemProperties;
@@ -115,8 +114,8 @@ public final class Main {
                                             foundJar.toRealPath().toString());
                                     System.out.println("Found game at: " + foundJar.toRealPath());
                                 } catch (Exception e) {
-                                    System.out.println("Could not get real path for found JAR "
-                                            + foundJar + " or set system property.");
+                                    System.out.println("Could not get real path for found JAR " + foundJar
+                                            + " or set system property.");
                                     e.printStackTrace();
                                 }
                             });
@@ -128,8 +127,8 @@ public final class Main {
         }
 
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
-            System.out.println("Could not find the Equilinox jar. Please set one manually using"
-                    + " the `-D" + SystemProperties.GAME_JAR_PATH + "=<...>` JVM Argument.");
+            System.out.println("Could not find the Equilinox jar. Please set one manually using" + " the `-D"
+                    + SystemProperties.GAME_JAR_PATH + "=<...>` JVM Argument.");
             System.exit(1);
         }
 
