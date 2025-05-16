@@ -36,8 +36,6 @@ dependencies {
     implementation("org.ow2.asm:asm-tree:$asmVersion")
     implementation("org.ow2.asm:asm-util:$asmVersion")
 
-    compileOnly("org.jetbrains:annotations:${rootProject.findProperty("annotationsVersion")}")
-
     implementation("ch.qos.logback:logback-classic:${findProperty("logbackVersion")}")
 }
 
