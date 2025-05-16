@@ -24,12 +24,11 @@ import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.*;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
-import org.jetbrains.annotations.NotNull;
 
 public class EquilinoxMetadata implements ModMetadata {
     private final Version version;
 
-    EquilinoxMetadata(@NotNull String version) {
+    EquilinoxMetadata(String version) {
         try {
             this.version = Version.parse(version);
         } catch (VersionParsingException e) {
@@ -74,7 +73,7 @@ public class EquilinoxMetadata implements ModMetadata {
 
     @Override
     public String getDescription() {
-        return "Equilinox Game";
+        return "The base game.";
     }
 
     @Override
