@@ -3,7 +3,7 @@ plugins {
     id("java-library")
 }
 
-version = findProperty("version")!!
+version = property("version")!!
 group = "de.rhm176.silk"
 
 repositories {
@@ -16,27 +16,27 @@ repositories {
 }
 
 dependencies {
-    api("net.fabricmc:fabric-loader:${findProperty("fabricLoaderVersion")}")
-    api("net.fabricmc:sponge-mixin:${findProperty("mixinVersion")}") {
+    api("net.fabricmc:fabric-loader:${property("fabricLoaderVersion")}")
+    api("net.fabricmc:sponge-mixin:${property("mixinVersion")}") {
         exclude(group = "com.google.code.gson")
         exclude(group = "com.google.guava")
     }
-    api("com.google.guava:guava:${findProperty("guavaVersion")}")
-    api("org.slf4j:slf4j-api:${findProperty("slf4jVersion")}")
+    api("io.github.llamalad7:mixinextras-fabric:${property("mixinExtrasVersion")}")
 
-    implementation("net.fabricmc:tiny-mappings-parser:${findProperty("tinyMappingsParserVersion")}")
+    implementation("com.google.guava:guava:${property("guavaVersion")}")
+    implementation("net.fabricmc:tiny-mappings-parser:${property("tinyMappingsParserVersion")}")
 
-    implementation("net.fabricmc:tiny-remapper:${findProperty("tinyRemapperVersion")}")
-    implementation("net.fabricmc:access-widener:${findProperty("accessWidenerVersion")}")
+    implementation("net.fabricmc:tiny-remapper:${property("tinyRemapperVersion")}")
+    implementation("net.fabricmc:access-widener:${property("accessWidenerVersion")}")
 
-    val asmVersion = findProperty("asmVersion") as String
+    val asmVersion = property("asmVersion") as String
     implementation("org.ow2.asm:asm:$asmVersion")
     implementation("org.ow2.asm:asm-analysis:$asmVersion")
     implementation("org.ow2.asm:asm-commons:$asmVersion")
     implementation("org.ow2.asm:asm-tree:$asmVersion")
     implementation("org.ow2.asm:asm-util:$asmVersion")
 
-    implementation("ch.qos.logback:logback-classic:${findProperty("logbackVersion")}")
+    implementation("ch.qos.logback:logback-classic:${property("logbackVersion")}")
 }
 
 java {
