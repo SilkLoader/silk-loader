@@ -45,6 +45,10 @@ public class ModInitPatch extends GamePatch {
     private static final String INIT_METHOD_NAME = "init";
     private static final String INIT_METHOD_DESCRIPTOR = "(Ljava/lang/Object;)V";
 
+    private static final String BEFORE_TARGET_OWNER_INTERNAL_NAME = "gameManaging/GameManager";
+    private static final String BEFORE_TARGET_METHOD_NAME = "init";
+    private static final String BEFORE_TARGET_METHOD_DESCRIPTOR = "()V";
+
     /**
      * Processes the game classes to apply the patch.
      * <p>
@@ -65,15 +69,27 @@ public class ModInitPatch extends GamePatch {
             System.exit(1);
         }
 
+        boolean patched = false;
         for (MethodNode methodNode : mainAppClass.methods) {
             if (TARGET_METHOD_NAME.equals(methodNode.name) && TARGET_METHOD_DESCRIPTOR.equals(methodNode.desc)) {
                 Log.debug(
-                        LogCategory.GAME_PATCH, "Applying mod init hook to %s::%s", mainAppClass.name, methodNode.name);
+                        LogCategory.GAME_PATCH, "Found target method %s::%s%s. Attempting to apply mod init hook.",
+                        mainAppClass.name, methodNode.name, methodNode.desc);
                 if (injectModInitCall(mainAppClass, methodNode)) {
                     classEmitter.accept(mainAppClass);
+                    Log.info(LogCategory.GAME_PATCH, "Successfully applied mod init hook to %s::%s%s.",
+                            mainAppClass.name, methodNode.name, methodNode.desc);
+                } else {
+                    Log.warn(LogCategory.GAME_PATCH, "Failed to apply mod init hook to %s::%s%s. Injection point not found or failed.",
+                            mainAppClass.name, methodNode.name, methodNode.desc);
                 }
-                break;
+                return;
             }
+        }
+
+        if (!patched) {
+            Log.error(LogCategory.GAME_PATCH, "ModInitPatch: Target method %s::%s%s not found in class %s. Patch not applied.",
+                    TARGET_METHOD_NAME, TARGET_METHOD_DESCRIPTOR, TARGET_CLASS_INTERNAL_NAME, mainAppClass.name);
         }
     }
 
@@ -99,9 +115,19 @@ public class ModInitPatch extends GamePatch {
         newInstructions.add(new MethodInsnNode(
                 Opcodes.INVOKESTATIC, PATCH_CLASS_INTERNAL_NAME, INIT_METHOD_NAME, INIT_METHOD_DESCRIPTOR, false));
 
-        methodNode.instructions.insert(newInstructions);
+        for (AbstractInsnNode instruction : methodNode.instructions) {
+            if (instruction instanceof MethodInsnNode methodCall) {
+                if (methodCall.getOpcode() == Opcodes.INVOKESTATIC &&
+                        BEFORE_TARGET_OWNER_INTERNAL_NAME.equals(methodCall.owner) &&
+                        BEFORE_TARGET_METHOD_NAME.equals(methodCall.name) &&
+                        BEFORE_TARGET_METHOD_DESCRIPTOR.equals(methodCall.desc)) {
+                    methodNode.instructions.insertBefore(methodCall, newInstructions);
+                    return true;
+                }
+            }
+        }
 
-        return true;
+        return false;
     }
 
     /**
