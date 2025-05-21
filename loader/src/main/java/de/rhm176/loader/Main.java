@@ -34,6 +34,13 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.SKIP_MC_PROVIDER, "true");
 
+        // me when access wideners don't work unless I provide a remap classpath file even though
+        if (System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
+            Path remapClasspathPath = Files.createTempFile("remapClassPath", ".txt");
+            remapClasspathPath.toFile().deleteOnExit();
+            System.setProperty(SystemProperties.REMAP_CLASSPATH_FILE, remapClasspathPath.toAbsolutePath().toString());
+        }
+
         if (System.getProperty("eqmodloader.loadedNatives") == null) {
             RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
             File file = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH))
