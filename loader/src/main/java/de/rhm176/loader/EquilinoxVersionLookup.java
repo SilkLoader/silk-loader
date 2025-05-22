@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
@@ -39,6 +42,9 @@ import org.objectweb.asm.Opcodes;
  * within the entrypoint class to get the display version.
  */
 public final class EquilinoxVersionLookup {
+
+    private static final Pattern SEMVER_REGEX = Pattern.compile("(\\d+\\.\\d+\\.\\d+)");
+
     /**
      * Private constructor to prevent instantiation of this utility class.
      */
@@ -91,7 +97,13 @@ public final class EquilinoxVersionLookup {
                                         && "Ljava/lang/String;".equals(descriptor)) {
 
                                     if (value instanceof String) {
-                                        version[0] = ((String) value).replaceFirst("Version ", "");
+                                        // extract version string using regex, ignoring
+                                        // "Version: " prefix and other qualifiers (e.g. "1.7.0b")
+                                        String rawVersion = ((String) value);
+                                        Matcher versionMatch = SEMVER_REGEX.matcher(rawVersion);
+                                        if (versionMatch.find()) {
+                                            version[0] = versionMatch.group(1);
+                                        }
                                     }
                                 }
                                 return super.visitField(access, name, descriptor, signature, value);
