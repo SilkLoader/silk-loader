@@ -18,6 +18,9 @@ package de.rhm176.silk.loader.patch;
 import de.rhm176.silk.loader.EquilinoxGameProvider;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
@@ -85,8 +88,16 @@ public class WindowTitlePatch extends GamePatch {
                             AbstractInsnNode argLoadInsn = getTextCall.getPrevious();
                             if (argLoadInsn != null && isArgOne(argLoadInsn)) {
                                 InsnList instructionsToInsert = new InsnList();
-                                instructionsToInsert.add(new LdcInsnNode(" " + gameProvider.getRawGameVersion()
-                                        + " - Fabric Loader " + FabricLoaderImpl.VERSION));
+                                // tries to get fabric loader version dynamically and fallbacks to version
+                                // silk-loader was compiled with
+                                instructionsToInsert.add(
+                                        new LdcInsnNode(" " + gameProvider.getRawGameVersion() + " - Fabric Loader "
+                                                + FabricLoaderImpl.INSTANCE
+                                                        .getModContainer("fabricloader")
+                                                        .map(ModContainer::getMetadata)
+                                                        .map(ModMetadata::getVersion)
+                                                        .map(Version::getFriendlyString)
+                                                        .orElse(FabricLoaderImpl.VERSION)));
 
                                 instructionsToInsert.add(new MethodInsnNode(
                                         Opcodes.INVOKEVIRTUAL,
