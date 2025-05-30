@@ -36,9 +36,15 @@ dependencies {
     implementation("org.ow2.asm:asm-tree:$asmVersion")
     implementation("org.ow2.asm:asm-util:$asmVersion")
 }
+
 java {
     withSourcesJar()
     withJavadocJar()
+}
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "de.rhm176.loader.Main"
+    }
 }
 
 publishing {
