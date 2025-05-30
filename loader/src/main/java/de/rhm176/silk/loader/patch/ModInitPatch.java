@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.rhm176.patch;
+package de.rhm176.silk.loader.patch;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -54,21 +54,33 @@ public class ModInitPatch extends GamePatch {
         for (MethodNode methodNode : mainAppClass.methods) {
             if (TARGET_METHOD_NAME.equals(methodNode.name) && TARGET_METHOD_DESCRIPTOR.equals(methodNode.desc)) {
                 Log.debug(
-                        LogCategory.GAME_PATCH, "Found target method %s::%s%s. Attempting to apply mod init hook.",
-                        mainAppClass.name, methodNode.name, methodNode.desc);
+                        LogCategory.GAME_PATCH,
+                        "Found target method %s::%s%s. Attempting to apply mod init hook.",
+                        mainAppClass.name,
+                        methodNode.name,
+                        methodNode.desc);
                 if (injectModInitCall(mainAppClass, methodNode)) {
                     classEmitter.accept(mainAppClass);
                 } else {
-                    Log.warn(LogCategory.GAME_PATCH, "Failed to apply mod init hook to %s::%s%s. Injection point not found or failed.",
-                            mainAppClass.name, methodNode.name, methodNode.desc);
+                    Log.warn(
+                            LogCategory.GAME_PATCH,
+                            "Failed to apply mod init hook to %s::%s%s. Injection point not found or failed.",
+                            mainAppClass.name,
+                            methodNode.name,
+                            methodNode.desc);
                 }
                 return;
             }
         }
 
         if (!patched) {
-            Log.error(LogCategory.GAME_PATCH, "ModInitPatch: Target method %s::%s%s not found in class %s. Patch not applied.",
-                    TARGET_METHOD_NAME, TARGET_METHOD_DESCRIPTOR, TARGET_CLASS_INTERNAL_NAME, mainAppClass.name);
+            Log.error(
+                    LogCategory.GAME_PATCH,
+                    "ModInitPatch: Target method %s::%s%s not found in class %s. Patch not applied.",
+                    TARGET_METHOD_NAME,
+                    TARGET_METHOD_DESCRIPTOR,
+                    TARGET_CLASS_INTERNAL_NAME,
+                    mainAppClass.name);
         }
     }
 
@@ -84,10 +96,10 @@ public class ModInitPatch extends GamePatch {
 
         for (AbstractInsnNode instruction : methodNode.instructions) {
             if (instruction instanceof MethodInsnNode methodCall) {
-                if (methodCall.getOpcode() == Opcodes.INVOKESTATIC &&
-                        BEFORE_TARGET_OWNER_INTERNAL_NAME.equals(methodCall.owner) &&
-                        BEFORE_TARGET_METHOD_NAME.equals(methodCall.name) &&
-                        BEFORE_TARGET_METHOD_DESCRIPTOR.equals(methodCall.desc)) {
+                if (methodCall.getOpcode() == Opcodes.INVOKESTATIC
+                        && BEFORE_TARGET_OWNER_INTERNAL_NAME.equals(methodCall.owner)
+                        && BEFORE_TARGET_METHOD_NAME.equals(methodCall.name)
+                        && BEFORE_TARGET_METHOD_DESCRIPTOR.equals(methodCall.desc)) {
                     methodNode.instructions.insertBefore(methodCall, newInstructions);
                     return true;
                 }

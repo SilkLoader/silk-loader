@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.rhm176.loader;
+package de.rhm176.silk.loader;
 
-import de.rhm176.patch.ModInitPatch;
-import de.rhm176.patch.WindowTitlePatch;
+import de.rhm176.silk.loader.patch.ModInitPatch;
+import de.rhm176.silk.loader.patch.WindowTitlePatch;
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
@@ -36,10 +36,7 @@ import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 public class EquilinoxGameProvider implements GameProvider {
-    private final GameTransformer transformer = new GameTransformer(
-            new WindowTitlePatch(this),
-            new ModInitPatch()
-    );
+    private final GameTransformer transformer = new GameTransformer(new WindowTitlePatch(this), new ModInitPatch());
 
     private List<Path> classPath;
 

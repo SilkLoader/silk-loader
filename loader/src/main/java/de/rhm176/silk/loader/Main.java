@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.rhm176.loader;
+package de.rhm176.silk.loader;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -146,7 +146,7 @@ public final class Main {
                         && isNativeFile(entry.getName())) {
                     File outputFile = new File(tempDir, entry.getName());
                     try (InputStream in = jarFile.getInputStream(entry);
-                         OutputStream out = new FileOutputStream(outputFile)) {
+                            OutputStream out = new FileOutputStream(outputFile)) {
                         byte[] buffer = new byte[8192];
                         int bytesRead;
                         while ((bytesRead = in.read(buffer)) != -1) {

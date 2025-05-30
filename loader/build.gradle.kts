@@ -43,7 +43,7 @@ java {
 }
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "de.rhm176.loader.Main"
+        attributes["Main-Class"] = "de.rhm176.silk.loader.Main"
     }
 }
 
