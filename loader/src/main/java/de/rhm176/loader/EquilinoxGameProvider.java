@@ -36,7 +36,10 @@ import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 public class EquilinoxGameProvider implements GameProvider {
-    private final GameTransformer transformer = new GameTransformer(new WindowTitlePatch(this), new ModInitPatch());
+    private final GameTransformer transformer = new GameTransformer(
+            new WindowTitlePatch(this),
+            new ModInitPatch()
+    );
 
     private List<Path> classPath;
 
@@ -159,11 +162,9 @@ public class EquilinoxGameProvider implements GameProvider {
 
     @Override
     public void launch(ClassLoader classLoader) {
-        var targetName = getEntrypoint();
-
         MethodHandle invoker;
         try {
-            Class<?> target = classLoader.loadClass(targetName);
+            Class<?> target = classLoader.loadClass(getEntrypoint());
             invoker = MethodHandles.lookup()
                     .findStatic(target, "main", MethodType.methodType(void.class, String[].class));
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {

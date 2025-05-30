@@ -26,14 +26,6 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
-/**
- * A {@link GamePatch} that modifies the game's window title to include
- * the game version and Fabric Loader version.
- * <p>
- * This patch targets the {@code createDisplay} method in the game's {@code DisplayManager} class.
- * It intercepts the call to {@code Display.setTitle(String)} and appends additional version
- * information to the original title string.
- */
 public class WindowTitlePatch extends GamePatch {
     private final EquilinoxGameProvider gameProvider;
 
@@ -48,26 +40,10 @@ public class WindowTitlePatch extends GamePatch {
     private static final String GET_TEXT_METHOD_NAME = "getText";
     private static final String GET_TEXT_METHOD_DESCRIPTOR = "(I)Ljava/lang/String;";
 
-    /**
-     * Constructs a new WindowTitlePatch.
-     *
-     * @param gameProvider The provider used for game-specific information, such as the game version.
-     */
     public WindowTitlePatch(EquilinoxGameProvider gameProvider) {
         this.gameProvider = gameProvider;
     }
 
-    /**
-     * Processes the game classes to apply the window title patch.
-     * <p>
-     * This method is called by the Fabric loader during game startup. It locates the
-     * target class ({@value #TARGET_CLASS_INTERNAL_NAME}) and method ({@value #TARGET_METHOD_NAME}),
-     * and if found, attempts to transform it using {@link #transformCreateDisplayMethod(MethodNode)}.
-     *
-     * @param launcher     The current {@link FabricLauncher} instance.
-     * @param classSource  A function to retrieve a {@link ClassNode}.
-     * @param classEmitter A consumer to accept the modified {@link ClassNode}.
-     */
     @Override
     public void process(
             FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
@@ -91,21 +67,6 @@ public class WindowTitlePatch extends GamePatch {
         }
     }
 
-    /**
-     * Transforms the {@code createDisplay} method to modify the window title.
-     * <p>
-     * This method searches for a specific pattern of bytecode instructions:
-     * <ol>
-     * <li>An instruction loading the argument {@code 1}.</li>
-     * <li>A static call to {@code GameText.getText(1)}.</li>
-     * <li>A static call to {@code Display.setTitle(String)}.</li>
-     * </ol>
-     * If this pattern is found, it inserts additional bytecode before the {@code Display.setTitle} call
-     * to concatenate the game version and Fabric Loader version to the original title string.
-     *
-     * @param methodNode The {@link MethodNode} of the {@code createDisplay} method to be transformed.
-     * @return {@code true} if the method was successfully modified, {@code false} otherwise.
-     */
     private boolean transformCreateDisplayMethod(MethodNode methodNode) {
         boolean methodModified = false;
 
@@ -147,13 +108,6 @@ public class WindowTitlePatch extends GamePatch {
         return methodModified;
     }
 
-    /**
-     * Checks if the given instruction node represents loading the integer constant {@code 1}.
-     * This is used to identify if {@code GameText.getText(1)} is being called.
-     *
-     * @param argLoadInsn The {@link AbstractInsnNode} to check.
-     * @return {@code true} if the instruction loads the integer {@code 1}, {@code false} otherwise.
-     */
     private static boolean isArgOne(AbstractInsnNode argLoadInsn) {
         if (argLoadInsn.getOpcode() == Opcodes.ICONST_1) {
             return true;

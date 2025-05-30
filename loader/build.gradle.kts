@@ -35,10 +35,7 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:$asmVersion")
     implementation("org.ow2.asm:asm-tree:$asmVersion")
     implementation("org.ow2.asm:asm-util:$asmVersion")
-
-    implementation("ch.qos.logback:logback-classic:${property("logbackVersion")}")
 }
-
 java {
     withSourcesJar()
     withJavadocJar()

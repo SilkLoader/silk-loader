@@ -34,11 +34,47 @@ public final class Main {
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.SKIP_MC_PROVIDER, "true");
 
-        // me when access wideners don't work unless I provide a remap classpath file even though
-        if (System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
-            Path remapClasspathPath = Files.createTempFile("remapClassPath", ".txt");
-            remapClasspathPath.toFile().deleteOnExit();
-            System.setProperty(SystemProperties.REMAP_CLASSPATH_FILE, remapClasspathPath.toAbsolutePath().toString());
+        if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
+            String currentJarName = null;
+            try {
+                Path runningJarPath = Paths.get(Main.class
+                        .getProtectionDomain()
+                        .getCodeSource()
+                        .getLocation()
+                        .toURI());
+                if (runningJarPath.getFileName().toString().toLowerCase().endsWith(".jar")) {
+                    currentJarName = runningJarPath.getFileName().toString();
+                }
+            } catch (Exception e) {
+                System.out.println("Could not determine current running JAR name.");
+                e.printStackTrace(System.out);
+            }
+
+            Path cwd = Paths.get(".");
+            if (currentJarName != null) {
+                final String finalCurrentJarName = currentJarName;
+                try (Stream<Path> stream = Files.list(cwd)) {
+                    stream.filter(p -> Files.isRegularFile(p)
+                                    && p.getFileName().toString().startsWith("Equilinox")
+                                    && p.getFileName().toString().toLowerCase().endsWith(".jar")
+                                    && !p.getFileName().toString().equals(finalCurrentJarName))
+                            .findFirst()
+                            .ifPresent(foundJar -> {
+                                try {
+                                    System.setProperty(
+                                            SystemProperties.GAME_JAR_PATH,
+                                            foundJar.toRealPath().toString());
+                                } catch (Exception e) {
+                                    System.out.println("Could not get real path for found JAR " + foundJar
+                                            + " or set system property.");
+                                    e.printStackTrace(System.out);
+                                }
+                            });
+                } catch (Exception e) {
+                    System.out.println("Error occurred while searching for game JAR in CWD.");
+                    e.printStackTrace(System.out);
+                }
+            }
         }
 
         if (System.getProperty("eqmodloader.loadedNatives") == null) {
@@ -81,55 +117,8 @@ public final class Main {
             try {
                 System.exit(process.waitFor());
             } catch (Exception e) {
-                //noinspection CallToPrintStackTrace
-                e.printStackTrace();
+                e.printStackTrace(System.out);
                 System.exit(-1);
-            }
-        }
-
-        if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
-            System.out.println(SystemProperties.GAME_JAR_PATH + " not set. Attempting to automatically "
-                    + "detect Equilinox game JAR.");
-            String currentJarName = null;
-            try {
-                Path runningJarPath = Paths.get(Main.class
-                        .getProtectionDomain()
-                        .getCodeSource()
-                        .getLocation()
-                        .toURI());
-                if (runningJarPath.getFileName().toString().toLowerCase().endsWith(".jar")) {
-                    currentJarName = runningJarPath.getFileName().toString();
-                }
-            } catch (Exception e) {
-                System.out.println("Could not determine current running JAR name.");
-                e.printStackTrace();
-            }
-
-            Path cwd = Paths.get(".");
-            if (currentJarName != null) {
-                final String finalCurrentJarName = currentJarName;
-                try (Stream<Path> stream = Files.list(cwd)) {
-                    stream.filter(p -> Files.isRegularFile(p)
-                                    && p.getFileName().toString().startsWith("Equilinox")
-                                    && p.getFileName().toString().toLowerCase().endsWith(".jar")
-                                    && !p.getFileName().toString().equals(finalCurrentJarName))
-                            .findFirst()
-                            .ifPresent(foundJar -> {
-                                try {
-                                    System.setProperty(
-                                            SystemProperties.GAME_JAR_PATH,
-                                            foundJar.toRealPath().toString());
-                                    System.out.println("Found game at: " + foundJar.toRealPath());
-                                } catch (Exception e) {
-                                    System.out.println("Could not get real path for found JAR " + foundJar
-                                            + " or set system property.");
-                                    e.printStackTrace();
-                                }
-                            });
-                } catch (Exception e) {
-                    System.out.println("Error occurred while searching for game JAR in CWD.");
-                    e.printStackTrace();
-                }
             }
         }
 
