@@ -20,6 +20,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
@@ -30,7 +34,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
- * Utility class to look up the version information of the Equilinox game.
+ * Utility class to look up the version information of Equilinox.
  * <p>
  * This class attempts to determine the game's display version string and
  * its Java class file version from the game's JAR file and a specified entrypoint class.
@@ -39,10 +43,14 @@ import org.objectweb.asm.Opcodes;
  * within the entrypoint class to get the display version.
  */
 public final class EquilinoxVersionLookup {
-    /**
-     * Private constructor to prevent instantiation of this utility class.
-     */
     private EquilinoxVersionLookup() {}
+
+    // not sure if the first two are actually needed but adding them can't hurt.
+    private static final Map<String, String> VERSION_NORMALIZER = Map.of(
+        "^([\\w.-]+)rc(\\d+)$", "$1-rc.$2",
+        "^([\\w.-]+)a$", "$1-alpha",
+        "^([\\w.-]+)b$", "$1-beta"
+    );
 
     /**
      * Retrieves the version information from the specified Equilinox game JAR.
@@ -103,6 +111,16 @@ public final class EquilinoxVersionLookup {
             throw ExceptionUtil.wrap(e);
         }
 
-        return new EquilinoxVersion(version[0], classPathVersion);
+        String rawVersionString = version[0];
+        String displayVersionString = rawVersionString;
+
+        for (String pattern : VERSION_NORMALIZER.keySet()) {
+            if (rawVersionString.matches(pattern)) {
+                displayVersionString = displayVersionString.replaceAll(pattern, VERSION_NORMALIZER.get(pattern));
+                break;
+            }
+        }
+
+        return new EquilinoxVersion(rawVersionString, displayVersionString, classPathVersion);
     }
 }
