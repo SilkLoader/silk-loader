@@ -21,6 +21,7 @@ import java.lang.management.RuntimeMXBean;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -31,50 +32,98 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 
 // my god, I hate this
 public final class Main {
+    // If the game can't be found by name, it will search all jars in the
+    // cwd and if all the listed classes are found,
+    // the jar is determined to be the game.
+    private static final List<String> equilinoxClassFiles = List.of("main/MainApp.class", "main/FirstScreenUi.class");
+
+    private static final List<String> JVM_ARG_BLACKLIST_PREFIXES = List.of(
+            "-Djava.library.path=",
+            "-Deqmodloader.loadedNatives",
+            "-Xbootclasspath",
+            "-javaagent",
+            "-cp",
+            "-classpath");
+
+    private static Optional<Path> findGameByName() {
+        String currentJarName = null;
+        try {
+            Path runningJarPath = Paths.get(Main.class
+                    .getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .toURI());
+            if (runningJarPath.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".jar")) {
+                currentJarName = runningJarPath.getFileName().toString();
+            }
+        } catch (Exception e) {
+            System.err.println("[Silk] Could not determine current running JAR name.");
+            e.printStackTrace(System.err);
+        }
+
+        if (currentJarName != null) {
+            final String finalCurrentJarName = currentJarName;
+            try (Stream<Path> stream = Files.list(Paths.get("."))) {
+                return stream.filter(p -> Files.isRegularFile(p)
+                                && (p.getFileName().toString().startsWith("Equilinox")
+                                        || p.getFileName().toString().equals("input.jar"))
+                                && p.getFileName()
+                                        .toString()
+                                        .toLowerCase(Locale.ROOT)
+                                        .endsWith(".jar")
+                                && !p.getFileName().toString().equals(finalCurrentJarName))
+                        .findFirst();
+            } catch (Exception e) {
+                System.err.println("[Silk] Error occurred while searching for game JAR in CWD.");
+                e.printStackTrace(System.err);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<Path> findGameByClasses() {
+        try (Stream<Path> stream = Files.list(Paths.get("."))) {
+            return stream.filter(Files::isRegularFile)
+                    .filter(p ->
+                            p.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".jar"))
+                    .filter(jarPath -> {
+                        try (JarFile jarFile = new JarFile(jarPath.toFile())) {
+                            for (String classEntry : equilinoxClassFiles) {
+                                if (jarFile.getJarEntry(classEntry) == null) {
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    })
+                    .findFirst();
+        } catch (IOException e) {
+            System.err.println("[Silk] Error occurred while searching for game JAR in CWD.");
+            e.printStackTrace(System.err);
+        }
+
+        return Optional.empty();
+    }
+
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.SKIP_MC_PROVIDER, "true");
 
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
-            String currentJarName = null;
-            try {
-                Path runningJarPath = Paths.get(Main.class
-                        .getProtectionDomain()
-                        .getCodeSource()
-                        .getLocation()
-                        .toURI());
-                if (runningJarPath.getFileName().toString().toLowerCase().endsWith(".jar")) {
-                    currentJarName = runningJarPath.getFileName().toString();
-                }
-            } catch (Exception e) {
-                System.out.println("Could not determine current running JAR name.");
-                e.printStackTrace(System.out);
-            }
-
-            Path cwd = Paths.get(".");
-            if (currentJarName != null) {
-                final String finalCurrentJarName = currentJarName;
-                try (Stream<Path> stream = Files.list(cwd)) {
-                    stream.filter(p -> Files.isRegularFile(p)
-                                    && p.getFileName().toString().startsWith("Equilinox")
-                                    && p.getFileName().toString().toLowerCase().endsWith(".jar")
-                                    && !p.getFileName().toString().equals(finalCurrentJarName))
-                            .findFirst()
-                            .ifPresent(foundJar -> {
-                                try {
-                                    System.setProperty(
-                                            SystemProperties.GAME_JAR_PATH,
-                                            foundJar.toRealPath().toString());
-                                } catch (Exception e) {
-                                    System.out.println("Could not get real path for found JAR " + foundJar
-                                            + " or set system property.");
-                                    e.printStackTrace(System.out);
-                                }
+            findGameByName()
+                    .or(Main::findGameByClasses)
+                    .ifPresentOrElse(
+                            (path) -> System.setProperty(
+                                    SystemProperties.GAME_JAR_PATH,
+                                    path.toAbsolutePath().toString()),
+                            () -> {
+                                System.err.println("[Silk]: Could not find the Equilinox jar. Please set one manually using"
+                                        + " the `-D" + SystemProperties.GAME_JAR_PATH + "=<...>` JVM Argument.");
+                                System.exit(1);
                             });
-                } catch (Exception e) {
-                    System.out.println("Error occurred while searching for game JAR in CWD.");
-                    e.printStackTrace(System.out);
-                }
-            }
         }
 
         if (System.getProperty("eqmodloader.loadedNatives") == null) {
@@ -85,26 +134,24 @@ public final class Main {
             Path nativesDirectory = extractNatives(file);
 
             List<String> command = new ArrayList<>();
-            command.add(Paths.get(bean.getSystemProperties().get("java.home"), "bin", "java")
-                    .toAbsolutePath()
-                    .toString());
+            command.add(ProcessHandle.current()
+                    .info()
+                    .command()
+                    .orElse(Paths.get(bean.getSystemProperties().get("java.home"), "bin", "java")
+                            .toAbsolutePath()
+                            .toString()));
 
-            final List<String> blackListedArgs = List.of(
-                    "-Djava.library.path=",
-                    "-Deqmodloader.loadedNatives",
-                    "-Xbootclasspath",
-                    "-javaagent",
-                    "-cp",
-                    "-classpath");
             command.addAll(bean.getInputArguments().stream()
-                    .filter(i -> blackListedArgs.stream().noneMatch(i::startsWith))
+                    .filter(i -> JVM_ARG_BLACKLIST_PREFIXES.stream().noneMatch(i::startsWith))
                     .toList());
 
             command.add("-cp");
             command.add(bean.getClassPath());
 
             command.add("-Deqmodloader.loadedNatives=true");
-            command.add("-Djava.library.path=" + nativesDirectory.toAbsolutePath());
+            command.add("-Djava.library.path=" + nativesDirectory.toAbsolutePath() + File.pathSeparator
+                    + file.getParentFile().getAbsolutePath());
+            command.add("-D" + SystemProperties.GAME_JAR_PATH + "=" + file.getAbsolutePath());
             command.add(Main.class.getName());
 
             command.addAll(Arrays.asList(args));
@@ -112,57 +159,54 @@ public final class Main {
             ProcessBuilder builder = new ProcessBuilder(command);
             builder.inheritIO();
             builder.redirectErrorStream(true);
-            Process process = builder.start();
 
-            try {
-                System.exit(process.waitFor());
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-                System.exit(-1);
-            }
-        }
-
-        if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
-            System.out.println("Could not find the Equilinox jar. Please set one manually using" + " the `-D"
-                    + SystemProperties.GAME_JAR_PATH + "=<...>` JVM Argument.");
-            System.exit(1);
+            System.exit(builder.start().waitFor());
         }
 
         Knot.launch(args, EnvType.CLIENT);
     }
 
-    public static Path extractNatives(File file) throws Exception {
-        File tempDir = Files.createTempDirectory("natives").toFile();
-        tempDir.deleteOnExit();
+    public static Path extractNatives(File gameJarPath) throws Exception {
+        Path tempDir = Files.createTempDirectory("natives");
 
-        try (JarFile jarFile = new JarFile(file, false)) {
-            Enumeration<JarEntry> entities = jarFile.entries();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                if (Files.exists(tempDir)) {
+                    try (Stream<Path> files = Files.walk(tempDir)) {
+                        //noinspection ResultOfMethodCallIgnored
+                        files.sorted(Comparator.reverseOrder())
+                                .map(Path::toFile)
+                                .forEach(File::delete);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+            }
+        }));
 
-            while (entities.hasMoreElements()) {
-                JarEntry entry = entities.nextElement();
+        try (JarFile jarFile = new JarFile(gameJarPath, false)) {
+            Enumeration<JarEntry> entries = jarFile.entries();
+
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                String entryName = entry.getName();
                 if (!entry.isDirectory()
-                        && !entry.getName().contains("/")
-                        && !entry.getName().contains("\\")
-                        && isNativeFile(entry.getName())) {
-                    File outputFile = new File(tempDir, entry.getName());
-                    try (InputStream in = jarFile.getInputStream(entry);
-                            OutputStream out = new FileOutputStream(outputFile)) {
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        while ((bytesRead = in.read(buffer)) != -1) {
-                            out.write(buffer, 0, bytesRead);
-                        }
+                        && !entryName.contains("/")
+                        && !entryName.contains("\\")
+                        && isNativeFile(entryName)) {
+                    Path outputFile = tempDir.resolve(entryName);
+                    try (InputStream in = jarFile.getInputStream(entry)) {
+                        Files.copy(in, outputFile, StandardCopyOption.REPLACE_EXISTING);
                     }
                 }
             }
         }
-
-        return tempDir.toPath();
+        return tempDir;
     }
 
     public static boolean isNativeFile(String entryName) {
         String osName = System.getProperty("os.name");
-        String name = entryName.toLowerCase();
+        String name = entryName.toLowerCase(Locale.ROOT);
         if (osName.startsWith("Win")) {
             return name.endsWith(".dll");
         } else if (osName.startsWith("Linux")) {

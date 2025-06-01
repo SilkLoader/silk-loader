@@ -21,9 +21,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
@@ -47,10 +44,9 @@ public final class EquilinoxVersionLookup {
 
     // not sure if the first two are actually needed but adding them can't hurt.
     private static final Map<String, String> VERSION_NORMALIZER = Map.of(
-        "^([\\w.-]+)rc(\\d+)$", "$1-rc.$2",
-        "^([\\w.-]+)a$", "$1-alpha",
-        "^([\\w.-]+)b$", "$1-beta"
-    );
+            "^([\\w.-]+)rc(\\d+)$", "$1-rc.$2",
+            "^([\\w.-]+)a$", "$1-alpha",
+            "^([\\w.-]+)b$", "$1-beta");
 
     /**
      * Retrieves the version information from the specified Equilinox game JAR.

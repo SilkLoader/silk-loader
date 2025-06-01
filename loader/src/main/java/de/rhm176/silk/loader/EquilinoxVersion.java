@@ -38,7 +38,7 @@ public record EquilinoxVersion(String rawName, String displayName, Integer class
 
     /**
      * Gets the raw name of the game version.
-     * 
+     *
      * @return The non-null raw name of the version.
      */
     @Override

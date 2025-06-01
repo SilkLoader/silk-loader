@@ -9,6 +9,10 @@ allprojects {
     apply(plugin = "java")
     apply(plugin = "com.diffplug.spotless")
 
+    repositories {
+        mavenCentral()
+    }
+
     java {
         val javaLanguageVersion = JavaLanguageVersion.of(rootProject.findProperty("javaVersion").toString())
         val javaVersion = JavaVersion.toVersion(javaLanguageVersion.asInt())
