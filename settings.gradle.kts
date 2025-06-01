@@ -11,7 +11,7 @@ if (!isJitpackBuild && !isCIBuild) {
             eachPlugin {
                 requested.apply {
                     if ("$id" == "de.rhm176.silk") {
-                        useModule("com.github.SilkLoader:silk-plugin:$version")
+                        useModule("com.github.SilkLoader:silk-plugin:v$version")
                     }
                 }
             }

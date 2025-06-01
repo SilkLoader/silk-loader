@@ -1,9 +1,11 @@
 plugins {
-    id("de.rhm176.silk") version "v1.0.4"
+    id("de.rhm176.silk") version "1.4.0"
+}
+
+silk {
+  silkLoaderCoordinates = project(":loader")
 }
 
 dependencies {
-    equilinox(files(silk.findEquilinoxGameJar()))
-
-    implementation(project(":loader"))
+    equilinox(silk.findEquilinoxGameJar())
 }
