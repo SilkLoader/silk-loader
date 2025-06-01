@@ -27,6 +27,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
@@ -110,6 +111,8 @@ public final class Main {
     }
 
     public static void main(String[] args) throws Exception {
+        System.out.println("[Silk] Launching via Silk Loader " + Main.class.getPackage().getImplementationVersion());
+
         System.setProperty(SystemProperties.SKIP_MC_PROVIDER, "true");
 
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {
@@ -127,6 +130,7 @@ public final class Main {
                                 System.exit(1);
                             });
         }
+        System.out.println("[Silk] Game was identified to be located at: " + System.getProperty(SystemProperties.GAME_JAR_PATH));
 
         if (System.getProperty("eqmodloader.loadedNatives") == null) {
             RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
