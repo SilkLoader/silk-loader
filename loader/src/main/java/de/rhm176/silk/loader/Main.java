@@ -120,8 +120,10 @@ public final class Main {
                                     SystemProperties.GAME_JAR_PATH,
                                     path.toAbsolutePath().toString()),
                             () -> {
-                                System.err.println("[Silk]: Could not find the Equilinox jar. Please set one manually using"
-                                        + " the `-D" + SystemProperties.GAME_JAR_PATH + "=<...>` JVM Argument.");
+                                System.err.println(
+                                        "[Silk]: Could not find the Equilinox jar. Please set one manually using"
+                                                + " the `-D" + SystemProperties.GAME_JAR_PATH
+                                                + "=<...>` JVM Argument.");
                                 System.exit(1);
                             });
         }
