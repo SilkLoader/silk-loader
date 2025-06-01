@@ -74,11 +74,13 @@ publishing {
                 }
                 url = uri("$reposiliteBaseUrl$repoPath")
 
-                credentials {
+                credentials(PasswordCredentials::class.java) {
                     username = System.getenv("REPOSILITE_USERNAME")
-                        ?: project.findProperty("reposiliteUsername") as String?
                     password = System.getenv("REPOSILITE_PASSWORD")
-                        ?: project.findProperty("reposilitePassword") as String?
+                }
+
+                authentication {
+                    create<BasicAuthentication>("basic")
                 }
             }
         }
