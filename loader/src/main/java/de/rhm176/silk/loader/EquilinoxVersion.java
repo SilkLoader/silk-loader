@@ -31,7 +31,8 @@ public record EquilinoxVersion(String rawName, String displayName, Integer class
     /**
      * Canonical constructor for the EquilinoxVersion record.
      *
-     * @param name The display name of the game version. Must not be null.
+     * @param rawName The raw name of the game version. Must not be null
+     * @param displayName The display name of the game version. Must not be null.
      * @param classVersion The Java class file major version, or null if not applicable/unknown.
      */
     public EquilinoxVersion {}
