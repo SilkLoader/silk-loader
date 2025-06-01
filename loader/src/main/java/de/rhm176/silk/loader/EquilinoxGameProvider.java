@@ -57,12 +57,12 @@ public class EquilinoxGameProvider implements GameProvider {
 
     @Override
     public String getRawGameVersion() {
-        return version.name();
+        return version.rawName();
     }
 
     @Override
     public String getNormalizedGameVersion() {
-        return version.name();
+        return version.displayName();
     }
 
     @Override

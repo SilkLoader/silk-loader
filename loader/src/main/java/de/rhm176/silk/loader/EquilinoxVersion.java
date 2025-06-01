@@ -21,12 +21,13 @@ package de.rhm176.silk.loader;
  * This record holds the display name of the version (e.g., "1.7.4") and
  * an optional Java class file version number (e.g., 52 for Java 8).
  *
- * @param name The display name of the game version (e.g., "1.7.4"). This should not be null.
+ * @param rawName The raw name of the game version (e.g., "1.7.0b"). This should not be null.
+ * @param displayName The display name of the game version (e.g., "1.7.0-beta"). This should not be null.
  * @param classVersion The Java class file major version number associated with this game version, if known.
  * This can be null if the class version is not determined or not applicable.
  * Common values: 52 (Java 8).
  */
-public record EquilinoxVersion(String name, Integer classVersion) {
+public record EquilinoxVersion(String rawName, String displayName, Integer classVersion) {
     /**
      * Canonical constructor for the EquilinoxVersion record.
      *
@@ -36,13 +37,23 @@ public record EquilinoxVersion(String name, Integer classVersion) {
     public EquilinoxVersion {}
 
     /**
+     * Gets the raw name of the game version.
+     * 
+     * @return The non-null raw name of the version.
+     */
+    @Override
+    public String rawName() {
+        return rawName;
+    }
+
+    /**
      * Gets the display name of the game version.
      *
      * @return The non-null display name of the version.
      */
     @Override
-    public String name() {
-        return name;
+    public String displayName() {
+        return displayName;
     }
 
     /**
