@@ -58,4 +58,29 @@ publishing {
             artifactId = "silk-loader"
         }
     }
+
+    repositories {
+        val reposiliteBaseUrl = System.getenv("REPOSILITE_URL")
+            ?: project.findProperty("reposiliteUrl") as String?
+
+        if (!reposiliteBaseUrl.isNullOrBlank()) {
+            maven {
+                name = "Reposilite"
+
+                val repoPath = if (project.version.toString().endsWith("-SNAPSHOT")) {
+                    "/repository/snapshots"
+                } else {
+                    "/repository/releases"
+                }
+                url = uri("$reposiliteBaseUrl$repoPath")
+
+                credentials {
+                    username = System.getenv("REPOSILITE_USERNAME")
+                        ?: project.findProperty("reposiliteUsername") as String?
+                    password = System.getenv("REPOSILITE_PASSWORD")
+                        ?: project.findProperty("reposilitePassword") as String?
+                }
+            }
+        }
+    }
 }

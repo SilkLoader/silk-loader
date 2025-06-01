@@ -60,7 +60,14 @@ jobs:
 
       - name: Build loader
         id: build_loader
-        run: ./gradlew :loader:jar --stacktrace --warning-mode fail
+        run: ./gradlew :loader:build --stacktrace --warning-mode fail
+
+      - name: Publish Silk Loader to Reposilite
+        run: ./gradlew :loader:publish --stacktrace --warning-mode fail
+        env:
+          REPOSILITE_URL: ${{ secrets.REPOSILITE_URL }}
+          REPOSILITE_USERNAME: ${{ secrets.REPOSILITE_USERNAME }}
+          REPOSILITE_PASSWORD: ${{ secrets.REPOSILITE_PASSWORD }}
 
       - name: Generate Changelog
         id: generate_changelog
