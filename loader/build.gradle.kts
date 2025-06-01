@@ -68,15 +68,15 @@ publishing {
                 name = "Reposilite"
 
                 val repoPath = if (project.version.toString().endsWith("-SNAPSHOT")) {
-                    "/repository/snapshots"
+                    "/snapshots"
                 } else {
-                    "/repository/releases"
+                    "/releases"
                 }
                 url = uri("$reposiliteBaseUrl$repoPath")
 
                 credentials(PasswordCredentials::class.java) {
-                    username = System.getenv("REPOSILITE_USERNAME")
-                    password = System.getenv("REPOSILITE_PASSWORD")
+                    username = System.getenv("REPOSILITE_USERNAME") ?: project.findProperty("reposiliteUsername") as String?
+                    password = System.getenv("REPOSILITE_PASSWORD") ?: project.findProperty("reposilitePassword") as String?
                 }
 
                 authentication {
