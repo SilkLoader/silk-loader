@@ -39,7 +39,6 @@ dependencies {
 
 java {
     withSourcesJar()
-    withJavadocJar()
 }
 tasks.jar {
     manifest {
