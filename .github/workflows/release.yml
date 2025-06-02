@@ -62,7 +62,7 @@ jobs:
         id: build_loader
         run: ./gradlew :loader:build --stacktrace --warning-mode fail
 
-      - name: Publish Silk Loader to Reposilite
+      - name: Publish loader
         run: ./gradlew :loader:publish --stacktrace --warning-mode fail
         env:
           REPOSILITE_URL: ${{ secrets.REPOSILITE_URL }}
