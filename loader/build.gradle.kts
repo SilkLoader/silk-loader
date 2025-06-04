@@ -35,6 +35,21 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:$asmVersion")
     implementation("org.ow2.asm:asm-tree:$asmVersion")
     implementation("org.ow2.asm:asm-util:$asmVersion")
+
+    testImplementation("uk.org.webcompere:system-stubs-core:${project.property("systemStubsVersion")}")
+    testImplementation("uk.org.webcompere:system-stubs-jupiter:${project.property("systemStubsVersion")}")
+    testImplementation("com.google.jimfs:jimfs:${project.property("jimfsVersion")}")
+
+    testImplementation(platform("org.junit:junit-bom:${project.property("junitVersion")}"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    testImplementation("org.mockito:mockito-core:${project.property("mockitoVersion")}")
+    testImplementation("org.mockito:mockito-junit-jupiter:${project.property("mockitoVersion")}")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 java {

@@ -15,6 +15,7 @@
  */
 package de.rhm176.silk.loader.patch;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import net.fabricmc.api.ModInitializer;
@@ -28,18 +29,31 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 public class ModInitPatch extends GamePatch {
-    private static final String TARGET_CLASS_INTERNAL_NAME = "main/MainApp";
-    private static final String TARGET_METHOD_NAME = "main";
-    private static final String TARGET_METHOD_DESCRIPTOR = "([Ljava/lang/String;)V";
+    @VisibleForTesting
+    static final String TARGET_CLASS_INTERNAL_NAME = "main/MainApp";
 
-    private static final String PATCH_CLASS_INTERNAL_NAME =
-            ModInitPatch.class.getName().replace('.', '/');
-    private static final String INIT_METHOD_NAME = "init";
+    @VisibleForTesting
+    static final String TARGET_METHOD_NAME = "main";
+
+    @VisibleForTesting
+    static final String TARGET_METHOD_DESCRIPTOR = "([Ljava/lang/String;)V";
+
+    @VisibleForTesting
+    static final String PATCH_CLASS_INTERNAL_NAME = ModInitPatch.class.getName().replace('.', '/');
+
+    @VisibleForTesting
+    static final String INIT_METHOD_NAME = "init";
+
+    @VisibleForTesting
+    static final String BEFORE_TARGET_OWNER_INTERNAL_NAME = "gameManaging/GameManager";
+
+    @VisibleForTesting
+    static final String BEFORE_TARGET_METHOD_NAME = "init";
+
+    @VisibleForTesting
+    static final String BEFORE_TARGET_METHOD_DESCRIPTOR = "()V";
+
     private static final String INIT_METHOD_DESCRIPTOR = "(Ljava/lang/Object;)V";
-
-    private static final String BEFORE_TARGET_OWNER_INTERNAL_NAME = "gameManaging/GameManager";
-    private static final String BEFORE_TARGET_METHOD_NAME = "init";
-    private static final String BEFORE_TARGET_METHOD_DESCRIPTOR = "()V";
 
     @Override
     public void process(

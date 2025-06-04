@@ -15,16 +15,13 @@
  */
 package de.rhm176.silk.loader;
 
-import java.io.*;
+import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.launch.knot.Knot;
@@ -45,7 +42,8 @@ public final class Main {
             "-cp",
             "-classpath");
 
-    private static Optional<Path> findGameByName() {
+    @VisibleForTesting
+    public static Optional<Path> findGameByName() {
         String currentJarName = null;
         try {
             Path runningJarPath = Paths.get(Main.class
@@ -88,21 +86,28 @@ public final class Main {
                     .filter(p ->
                             p.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".jar"))
                     .filter(jarPath -> {
-                        try (JarFile jarFile = new JarFile(jarPath.toFile())) {
+                        try (FileSystem jarFs = FileSystems.newFileSystem(jarPath, Map.of())) {
                             for (String classEntry : equilinoxClassFiles) {
-                                if (jarFile.getJarEntry(classEntry) == null) {
+                                if (classEntry == null || classEntry.trim().isEmpty()) {
+                                    System.err.println("[Silk] Encountered a null or empty class entry path.");
+                                    continue;
+                                }
+                                Path pathInJar = jarFs.getPath(classEntry);
+
+                                if (!Files.exists(pathInJar)) {
                                     return false;
                                 }
                             }
-
                             return true;
                         } catch (IOException e) {
-                            return false;
+                            System.err.println("[Silk] IOException while checking JAR " + jarPath.getFileName()
+                                    + " for entries: " + e.getMessage());
                         }
+                        return false;
                     })
                     .findFirst();
         } catch (IOException e) {
-            System.err.println("[Silk] Error occurred while searching for game JAR in CWD.");
+            System.err.println("[Silk] Error occurred while searching for game JAR in CWD: " + e.getMessage());
             e.printStackTrace(System.err);
         }
 
@@ -135,9 +140,7 @@ public final class Main {
 
         if (System.getProperty("eqmodloader.loadedNatives") == null) {
             RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
-            File file = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH))
-                    .toRealPath()
-                    .toFile();
+            Path file = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH));
             Path nativesDirectory = extractNatives(file);
 
             List<String> command = new ArrayList<>();
@@ -157,8 +160,8 @@ public final class Main {
 
             command.add("-Deqmodloader.loadedNatives=true");
             command.add("-Djava.library.path=" + nativesDirectory.toAbsolutePath() + File.pathSeparator
-                    + file.getParentFile().getAbsolutePath());
-            command.add("-D" + SystemProperties.GAME_JAR_PATH + "=" + file.getAbsolutePath());
+                    + file.getParent().toAbsolutePath());
+            command.add("-D" + SystemProperties.GAME_JAR_PATH + "=" + file.toAbsolutePath());
             command.add(Main.class.getName());
 
             command.addAll(Arrays.asList(args));
@@ -173,17 +176,21 @@ public final class Main {
         Knot.launch(args, EnvType.CLIENT);
     }
 
-    public static Path extractNatives(File gameJarPath) throws Exception {
+    public static Path extractNatives(Path gameJarPath) throws Exception {
         Path tempDir = Files.createTempDirectory("natives");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 if (Files.exists(tempDir)) {
                     try (Stream<Path> files = Files.walk(tempDir)) {
-                        //noinspection ResultOfMethodCallIgnored
-                        files.sorted(Comparator.reverseOrder())
-                                .map(Path::toFile)
-                                .forEach(File::delete);
+                        files.sorted(Comparator.reverseOrder()).forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException e) {
+                                System.err.println(
+                                        "[Silk] Failed to delete path in temp dir: " + path + " - " + e.getMessage());
+                            }
+                        });
                     }
                 }
             } catch (IOException e) {
@@ -191,19 +198,17 @@ public final class Main {
             }
         }));
 
-        try (JarFile jarFile = new JarFile(gameJarPath, false)) {
-            Enumeration<JarEntry> entries = jarFile.entries();
-
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                String entryName = entry.getName();
-                if (!entry.isDirectory()
-                        && !entryName.contains("/")
-                        && !entryName.contains("\\")
-                        && isNativeFile(entryName)) {
-                    Path outputFile = tempDir.resolve(entryName);
-                    try (InputStream in = jarFile.getInputStream(entry)) {
-                        Files.copy(in, outputFile, StandardCopyOption.REPLACE_EXISTING);
+        try (FileSystem jarFs = FileSystems.newFileSystem(gameJarPath, Map.of())) {
+            for (Path rootDirInJar : jarFs.getRootDirectories()) {
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(rootDirInJar)) {
+                    for (Path pathInJar : stream) {
+                        if (Files.isRegularFile(pathInJar)) {
+                            String entryName = pathInJar.getFileName().toString();
+                            if (isNativeFile(entryName)) {
+                                Path outputFile = tempDir.resolve(entryName);
+                                Files.copy(pathInJar, outputFile, StandardCopyOption.REPLACE_EXISTING);
+                            }
+                        }
                     }
                 }
             }

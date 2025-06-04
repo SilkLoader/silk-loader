@@ -15,6 +15,7 @@
  */
 package de.rhm176.silk.loader.patch;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.rhm176.silk.loader.EquilinoxGameProvider;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,16 +33,29 @@ import org.objectweb.asm.tree.*;
 public class WindowTitlePatch extends GamePatch {
     private final EquilinoxGameProvider gameProvider;
 
-    private static final String TARGET_CLASS_INTERNAL_NAME = "basics/DisplayManager";
-    private static final String TARGET_METHOD_NAME = "createDisplay";
+    @VisibleForTesting
+    static final String TARGET_CLASS_INTERNAL_NAME = "basics/DisplayManager";
 
-    private static final String DISPLAY_CLASS_INTERNAL_NAME = "org/lwjgl/opengl/Display";
-    private static final String SET_TITLE_METHOD_NAME = "setTitle";
-    private static final String SET_TITLE_METHOD_DESCRIPTOR = "(Ljava/lang/String;)V";
+    @VisibleForTesting
+    static final String TARGET_METHOD_NAME = "createDisplay";
 
-    private static final String GAME_TEXT_CLASS_INTERNAL_NAME = "languages/GameText";
-    private static final String GET_TEXT_METHOD_NAME = "getText";
-    private static final String GET_TEXT_METHOD_DESCRIPTOR = "(I)Ljava/lang/String;";
+    @VisibleForTesting
+    static final String DISPLAY_CLASS_INTERNAL_NAME = "org/lwjgl/opengl/Display";
+
+    @VisibleForTesting
+    static final String SET_TITLE_METHOD_NAME = "setTitle";
+
+    @VisibleForTesting
+    static final String SET_TITLE_METHOD_DESCRIPTOR = "(Ljava/lang/String;)V";
+
+    @VisibleForTesting
+    static final String GAME_TEXT_CLASS_INTERNAL_NAME = "languages/GameText";
+
+    @VisibleForTesting
+    static final String GET_TEXT_METHOD_NAME = "getText";
+
+    @VisibleForTesting
+    static final String GET_TEXT_METHOD_DESCRIPTOR = "(I)Ljava/lang/String;";
 
     public WindowTitlePatch(EquilinoxGameProvider gameProvider) {
         this.gameProvider = gameProvider;
@@ -119,7 +133,8 @@ public class WindowTitlePatch extends GamePatch {
         return methodModified;
     }
 
-    private static boolean isArgOne(AbstractInsnNode argLoadInsn) {
+    @VisibleForTesting
+    static boolean isArgOne(AbstractInsnNode argLoadInsn) {
         if (argLoadInsn.getOpcode() == Opcodes.ICONST_1) {
             return true;
         } else if (argLoadInsn instanceof LdcInsnNode ldcNode) {
