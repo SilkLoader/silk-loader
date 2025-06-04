@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
@@ -90,46 +89,48 @@ class MainTest {
 
         staticPaths.when(() -> Paths.get(".")).thenReturn(cwd);
 
-        staticPaths.when(() -> Paths.get(anyString(), ArgumentMatchers.<String>any())).thenAnswer(invocation -> {
-            Object[] allArgs = invocation.getArguments();
-            String firstArg = (String) allArgs[0];
-            String[] moreArgs;
+        staticPaths
+                .when(() -> Paths.get(anyString(), ArgumentMatchers.<String>any()))
+                .thenAnswer(invocation -> {
+                    Object[] allArgs = invocation.getArguments();
+                    String firstArg = (String) allArgs[0];
+                    String[] moreArgs;
 
-            if (allArgs.length == 1) {
-                moreArgs = new String[0];
-            } else if (allArgs[1] instanceof String[]) {
-                moreArgs = (String[]) allArgs[1];
-            } else {
-                System.err.println("Unexpected args structure in Paths.get mock: " + Arrays.toString(allArgs));
-                return invocation.callRealMethod();
-            }
+                    if (allArgs.length == 1) {
+                        moreArgs = new String[0];
+                    } else if (allArgs[1] instanceof String[]) {
+                        moreArgs = (String[]) allArgs[1];
+                    } else {
+                        System.err.println("Unexpected args structure in Paths.get mock: " + Arrays.toString(allArgs));
+                        return invocation.callRealMethod();
+                    }
 
-            if (firstArg.equals(".") && moreArgs.length == 0) return cwd;
+                    if (firstArg.equals(".") && moreArgs.length == 0) return cwd;
 
-            Path jimfsCwdRoot = cwd.getRoot();
-            if (jimfsCwdRoot != null && firstArg.startsWith(jimfs.getSeparator())) {
-                Path firstAsPathInJimfs;
-                try {
-                    firstAsPathInJimfs = jimfs.getPath(firstArg);
-                } catch (InvalidPathException ipe) {
-                    return invocation.callRealMethod();
-                }
-
-                if (firstAsPathInJimfs.getRoot() != null
-                        && jimfsCwdRoot
-                                .toString()
-                                .equals(firstAsPathInJimfs.getRoot().toString())) {
-                    if (firstArg.startsWith(cwd.toString()) || firstArg.equals(jimfsCwdRoot.toString())) {
+                    Path jimfsCwdRoot = cwd.getRoot();
+                    if (jimfsCwdRoot != null && firstArg.startsWith(jimfs.getSeparator())) {
+                        Path firstAsPathInJimfs;
                         try {
-                            return jimfs.getPath(firstArg, moreArgs);
-                        } catch (InvalidPathException e) {
-                            /* Fall through */
+                            firstAsPathInJimfs = jimfs.getPath(firstArg);
+                        } catch (InvalidPathException ipe) {
+                            return invocation.callRealMethod();
+                        }
+
+                        if (firstAsPathInJimfs.getRoot() != null
+                                && jimfsCwdRoot
+                                        .toString()
+                                        .equals(firstAsPathInJimfs.getRoot().toString())) {
+                            if (firstArg.startsWith(cwd.toString()) || firstArg.equals(jimfsCwdRoot.toString())) {
+                                try {
+                                    return jimfs.getPath(firstArg, moreArgs);
+                                } catch (InvalidPathException e) {
+                                    /* Fall through */
+                                }
+                            }
                         }
                     }
-                }
-            }
-            return (Path) invocation.callRealMethod();
-        });
+                    return (Path) invocation.callRealMethod();
+                });
 
         staticPaths.when(() -> Paths.get(any(URI.class))).thenAnswer(InvocationOnMock::callRealMethod);
 
