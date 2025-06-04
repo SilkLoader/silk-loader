@@ -27,11 +27,12 @@ jobs:
           ref: ${{ github.event.inputs.target_commitish || github.ref }}
           fetch-depth: 0
 
-      - name: Set up JDK (e.g., Temurin 17)
+      - name: Set up JDK
         uses: actions/setup-java@v4.7.1
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Read version from gradle.properties
         id: read_version
@@ -54,9 +55,6 @@ jobs:
             exit 1
           fi
         shell: bash
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4.3.1
 
       - name: Build loader
         id: build_loader
