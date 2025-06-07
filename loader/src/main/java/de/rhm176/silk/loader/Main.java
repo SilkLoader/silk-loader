@@ -24,11 +24,23 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Stream;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 // my god, I hate this
 public final class Main {
+    public static final Version VERSION;
+
+    static {
+        try {
+            VERSION = Version.parse(Main.class.getPackage().getImplementationVersion());
+        } catch (VersionParsingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     // If the game can't be found by name, it will search all jars in the
     // cwd and if all the listed classes are found,
     // the jar is determined to be the game.
@@ -115,9 +127,6 @@ public final class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println(
-                "[Silk] Launching via Silk Loader " + Main.class.getPackage().getImplementationVersion());
-
         System.setProperty(SystemProperties.SKIP_MC_PROVIDER, "true");
 
         if (!System.getProperties().containsKey(SystemProperties.GAME_JAR_PATH)) {

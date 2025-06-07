@@ -67,7 +67,9 @@ public class EquilinoxGameProvider implements GameProvider {
 
     @Override
     public Collection<BuiltinMod> getBuiltinMods() {
-        return List.of(new BuiltinMod(classPath, new EquilinoxMetadata(getNormalizedGameVersion())));
+        return List.of(
+                new BuiltinMod(classPath, new EquilinoxMetadata(getNormalizedGameVersion())),
+                new BuiltinMod(classPath, new SilkMetadata()));
     }
 
     @Override
