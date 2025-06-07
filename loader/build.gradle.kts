@@ -23,7 +23,9 @@ dependencies {
     }
     api("io.github.llamalad7:mixinextras-fabric:${property("mixinExtrasVersion")}")
 
-    implementation("com.google.guava:guava:${property("guavaVersion")}")
+    api("com.google.guava:guava:${property("guavaVersion")}")
+    api("com.google.code.gson:gson:${property("gsonVersion")}")
+
     implementation("net.fabricmc:tiny-mappings-parser:${property("tinyMappingsParserVersion")}")
 
     implementation("net.fabricmc:tiny-remapper:${property("tinyRemapperVersion")}")
