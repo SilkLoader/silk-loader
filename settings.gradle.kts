@@ -7,17 +7,11 @@ include(":loader")
 
 if (!isJitpackBuild && !isCIBuild) {
     pluginManagement {
-        resolutionStrategy {
-            eachPlugin {
-                requested.apply {
-                    if ("$id" == "de.rhm176.silk") {
-                        useModule("com.github.SilkLoader:silk-plugin:v$version")
-                    }
-                }
-            }
-        }
-
         repositories {
+            maven {
+                url = uri("https://maven.rhm176.de/releases")
+                name = "RHM's Maven"
+            }
             maven("https://jitpack.io")
             gradlePluginPortal()
         }

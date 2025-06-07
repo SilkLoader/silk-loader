@@ -1,6 +1,7 @@
 plugins {
     id("maven-publish")
     id("java-library")
+    id("com.gradleup.shadow") version "9.0.0-beta15"
 }
 
 version = property("version")!!
@@ -57,13 +58,34 @@ tasks.test {
 java {
     withSourcesJar()
 }
+
+fun Manifest.applyDefaultAttributes(project: Project) {
+    attributes(
+        "Main-Class" to "de.rhm176.silk.loader.Main",
+        "Implementation-Version" to project.version
+    )
+}
+
 tasks.jar {
     manifest {
-        attributes(
-            "Main-Class" to "de.rhm176.silk.loader.Main",
-            "Implementation-Version" to project.version
-        )
+        applyDefaultAttributes(project)
     }
+}
+
+tasks.shadowJar {
+    archiveClassifier.set("all")
+
+    dependencies {
+        include(dependency("com.google.code.gson:gson"))
+    }
+
+    manifest {
+        applyDefaultAttributes(project)
+    }
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
 
 publishing {
