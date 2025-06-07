@@ -34,8 +34,13 @@ public final class Main {
     public static final Version VERSION;
 
     static {
+        String version = Main.class.getPackage().getImplementationVersion();
+        if (version == null) {
+            version = "0.0.0-dev";
+        }
+
         try {
-            VERSION = Version.parse(Main.class.getPackage().getImplementationVersion());
+            VERSION = Version.parse(version);
         } catch (VersionParsingException e) {
             throw new RuntimeException(e);
         }

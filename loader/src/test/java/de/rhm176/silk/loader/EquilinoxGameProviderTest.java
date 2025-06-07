@@ -350,7 +350,7 @@ class EquilinoxGameProviderTest {
         prepareGameProviderForLaunch();
         Collection<GameProvider.BuiltinMod> builtinMods = gameProvider.getBuiltinMods();
         assertNotNull(builtinMods);
-        assertEquals(1, builtinMods.size());
+        assertEquals(2, builtinMods.size());
         GameProvider.BuiltinMod mod = builtinMods.iterator().next();
         assertNotNull(mod.metadata);
         assertEquals("equilinox", mod.metadata.getId());
