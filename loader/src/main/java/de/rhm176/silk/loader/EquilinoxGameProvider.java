@@ -26,7 +26,10 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
@@ -37,6 +40,7 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 
 public class EquilinoxGameProvider implements GameProvider {
     private final GameTransformer transformer = new GameTransformer(new WindowTitlePatch(this), new ModInitPatch());
+    private final Set<String> gameClasses;
 
     private List<Path> classPath;
 
@@ -44,6 +48,27 @@ public class EquilinoxGameProvider implements GameProvider {
 
     private String entryClass;
     private EquilinoxVersion version;
+
+    public EquilinoxGameProvider() {
+        gameClasses = new HashSet<>();
+        String gameJar = System.getProperty(SystemProperties.GAME_JAR_PATH);
+
+        if (gameJar != null) {
+            try (JarFile jarFile = new JarFile(System.getProperty(SystemProperties.GAME_JAR_PATH))) {
+                jarFile.stream()
+                        .filter(entry -> !entry.isDirectory() && entry.getName().endsWith(".class"))
+                        .forEach(entry -> {
+                            String className = entry.getName()
+                                    .replace('/', '.')
+                                    .replace('\\', '.')
+                                    .replace(".class", "");
+                            gameClasses.add(className);
+                        });
+            } catch (IOException e) {
+                throw ExceptionUtil.wrap(new RuntimeException("Failed to collect Equilinox game classes", e));
+            }
+        }
+    }
 
     @Override
     public String getGameId() {
@@ -84,11 +109,6 @@ public class EquilinoxGameProvider implements GameProvider {
         } catch (IOException e) {
             throw ExceptionUtil.wrap(new RuntimeException("Failed to resolve launch dir", e));
         }
-    }
-
-    @Override
-    public boolean isObfuscated() {
-        return false;
     }
 
     @Override
@@ -187,5 +207,10 @@ public class EquilinoxGameProvider implements GameProvider {
     public String[] getLaunchArguments(boolean sanitize) {
         // There are no sensitive arguments, so I can just pass it as an array without removing any.
         return arguments.toArray();
+    }
+
+    @Override
+    public Set<BuiltinTransform> getBuiltinTransforms(String className) {
+        return gameClasses.contains(className) ? Set.of(BuiltinTransform.CLASS_TWEAKS) : Set.of();
     }
 }

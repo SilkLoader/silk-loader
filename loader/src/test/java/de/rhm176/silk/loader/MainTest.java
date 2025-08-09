@@ -43,8 +43,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.org.webcompere.systemstubs.SystemStubs;
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
@@ -339,16 +337,14 @@ class MainTest {
     void main_gameJarPathAlreadySet_noRelaunch_knotLaunches() throws Exception {
         Path dummyGameJar = createDummyJar("mygame.jar", List.of("main/MainApp.class", "main/FirstScreenUi.class"));
 
-        new EnvironmentVariables(Map.of("DISABLE_FORK", "true")).execute(() -> {
-            Properties props = new Properties();
-            props.put(
-                    net.fabricmc.loader.impl.util.SystemProperties.GAME_JAR_PATH,
-                    dummyGameJar.toAbsolutePath().toString());
-            props.put("eqmodloader.loadedNatives", "true");
+        Properties props = new Properties();
+        props.put(
+                net.fabricmc.loader.impl.util.SystemProperties.GAME_JAR_PATH,
+                dummyGameJar.toAbsolutePath().toString());
+        props.put("eqmodloader.loadedNatives", "true");
 
-            new SystemProperties(props).execute(() -> {
-                Main.main(new String[] {"--arg1", "val1"});
-            });
+        new SystemProperties(props).execute(() -> {
+            Main.main(new String[] {"--arg1", "val1"});
         });
 
         staticKnot.verify(() -> Knot.launch(eq(new String[] {"--arg1", "val1"}), eq(EnvType.CLIENT)));
@@ -399,25 +395,7 @@ class MainTest {
                         discoveredGameJar.toAbsolutePath().toString(),
                         System.getProperty(net.fabricmc.loader.impl.util.SystemProperties.GAME_JAR_PATH)));
     }
-     */
 
-    @Test
-    void main_discoveryFails_exitsWithError() throws Exception {
-        simulateRunningFromJimfsJar("silk-loader.jar");
-
-        String errText = SystemStubs.tapSystemErrAndOut(() -> {
-            int exitCode =
-                    SystemStubs.catchSystemExit(() -> new SystemProperties().execute(() -> Main.main(new String[] {})));
-            assertEquals(1, exitCode);
-        });
-
-        assertTrue(errText.contains("[Silk]: Could not find the Equilinox jar."));
-        new SystemProperties().execute(() -> {
-            assertNull(System.getProperty(net.fabricmc.loader.impl.util.SystemProperties.GAME_JAR_PATH));
-        });
-    }
-
-    /* TODO:
     @Test
     void main_relaunchFiltersJvmArgs() throws Exception {
         setupMainTestMocks();

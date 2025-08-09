@@ -258,11 +258,6 @@ class EquilinoxGameProviderTest {
     }
 
     @Test
-    void isObfuscated_returnsFalse() {
-        assertFalse(gameProvider.isObfuscated());
-    }
-
-    @Test
     void requiresUrlClassLoader_returnsFalse() {
         assertFalse(gameProvider.requiresUrlClassLoader());
     }

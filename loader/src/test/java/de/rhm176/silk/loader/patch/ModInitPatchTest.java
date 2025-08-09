@@ -15,6 +15,7 @@
  */
 package de.rhm176.silk.loader.patch;
 
+import static com.ginsberg.junit.exit.assertions.SystemExitAssertion.assertThatCallsSystemExit;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,7 +41,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
-import uk.org.webcompere.systemstubs.SystemStubs;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -264,10 +264,9 @@ class ModInitPatchTest {
         String dotFormattedTargetClassName = MIP_TARGET_CLASS_INTERNAL_NAME.replace('/', '.');
         when(classSourceMock.apply(dotFormattedTargetClassName)).thenReturn(null);
 
-        int exitCode =
-                SystemStubs.catchSystemExit(() -> patch.process(launcherMock, classSourceMock, classEmitterMock));
+        assertThatCallsSystemExit(() -> patch.process(launcherMock, classSourceMock, classEmitterMock))
+                .withExitCode(1);
 
-        assertEquals(1, exitCode);
         verify(classEmitterMock, never()).accept(any());
         logMock.verify(() -> Log.error(eq(LogCategory.GAME_PATCH), eq("Could not find main class for mod init hook.")));
     }

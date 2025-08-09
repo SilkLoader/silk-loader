@@ -187,6 +187,8 @@ public final class Main {
             System.exit(builder.start().waitFor());
         }
 
+        System.getProperty(SystemProperties.GAME_JAR_PATH);
+
         Knot.launch(args, EnvType.CLIENT);
     }
 

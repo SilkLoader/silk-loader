@@ -16,6 +16,8 @@ repositories {
     }
 }
 
+val mockitoAgent = configurations.create("mockitoAgent")
+
 dependencies {
     api("net.fabricmc:fabric-loader:${property("fabricLoaderVersion")}")
     api("net.fabricmc:sponge-mixin:${property("mixinVersion")}") {
@@ -39,20 +41,36 @@ dependencies {
     implementation("org.ow2.asm:asm-tree:$asmVersion")
     implementation("org.ow2.asm:asm-util:$asmVersion")
 
-    testImplementation("uk.org.webcompere:system-stubs-core:${project.property("systemStubsVersion")}")
-    testImplementation("uk.org.webcompere:system-stubs-jupiter:${project.property("systemStubsVersion")}")
     testImplementation("com.google.jimfs:jimfs:${project.property("jimfsVersion")}")
 
     testImplementation(platform("org.junit:junit-bom:${project.property("junitVersion")}"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    testImplementation("uk.org.webcompere:system-stubs-core:${project.property("systemStubsVersion")}")
+    testImplementation("uk.org.webcompere:system-stubs-jupiter:${project.property("systemStubsVersion")}")
+
+    testImplementation("com.ginsberg:junit5-system-exit:${project.property("systemExitVersion")}")
+
     testImplementation("org.mockito:mockito-core:${project.property("mockitoVersion")}")
+    mockitoAgent("org.mockito:mockito-core:${project.property("mockitoVersion")}") {
+        isTransitive = false
+    }
     testImplementation("org.mockito:mockito-junit-jupiter:${project.property("mockitoVersion")}")
 }
 
 tasks.test {
     useJUnitPlatform()
+
+    jvmArgs = (jvmArgs ?: mutableListOf()).apply {
+        add("-javaagent:${mockitoAgent.asPath}")
+    }
+
+    jvmArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("-javaagent:${configurations.testRuntimeClasspath.get().files.find {
+            it.name.contains("junit5-system-exit") }
+        }")
+    })
 }
 
 java {
