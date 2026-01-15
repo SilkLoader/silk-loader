@@ -126,7 +126,6 @@ public class ModInitPatch extends GamePatch {
     public static void init(Object gameInstance) {
         FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 
-        loader.loadAccessWideners();
         loader.prepareModInit(FabricLoader.getInstance().getGameDir(), gameInstance);
         loader.invokeEntrypoints("main", ModInitializer.class, ModInitializer::onInitialize);
     }

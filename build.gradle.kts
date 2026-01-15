@@ -13,6 +13,10 @@ allprojects {
         mavenCentral()
     }
 
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.add("-Xlint:deprecation")
+    }
+
     java {
         val javaLanguageVersion = JavaLanguageVersion.of(rootProject.findProperty("javaVersion").toString())
         val javaVersion = JavaVersion.toVersion(javaLanguageVersion.asInt())

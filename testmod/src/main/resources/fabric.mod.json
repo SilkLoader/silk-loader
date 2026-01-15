@@ -15,5 +15,5 @@
     "fabricloader": "*",
     "java": ">=17"
   },
-  "accessWidener": "testmod.accesswidener"
+  "accessWidener": "testmod.ct"
 }

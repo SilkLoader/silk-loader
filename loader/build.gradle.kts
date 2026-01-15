@@ -29,10 +29,8 @@ dependencies {
     api("com.google.guava:guava:${property("guavaVersion")}")
     api("com.google.code.gson:gson:${property("gsonVersion")}")
 
-    implementation("net.fabricmc:tiny-mappings-parser:${property("tinyMappingsParserVersion")}")
-
     implementation("net.fabricmc:tiny-remapper:${property("tinyRemapperVersion")}")
-    implementation("net.fabricmc:access-widener:${property("accessWidenerVersion")}")
+    implementation("net.fabricmc:class-tweaker:${property("classTweakerVersion")}")
 
     val asmVersion = property("asmVersion") as String
     implementation("org.ow2.asm:asm:$asmVersion")
